@@ -1,0 +1,13 @@
+.sli {
+    display: flex;
+    /* flex-wrap: wrap; */
+}
+
+.sli > pre {
+    margin: 20px 10px;
+    /*;font-size: 0.6em;*/
+}
+
+.emphasize {
+    color: #1b91ff;
+}

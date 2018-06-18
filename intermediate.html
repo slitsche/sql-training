@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <link rel="stylesheet" href="css/reveal.css">
+                <link rel="stylesheet" href="css/theme/beige.css">
+                <link rel="stylesheet" href="css/sli.css">
+                <meta charset="utf-8"/>
+<script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+    </head>
+        <body>
+    <div class="reveal">
+        <div class="slides">
+            <section>Slide 1</section>
+            <section>
+                <section>Setup</section>
+                <section>
+                  <h2>Training Database</h2>
+                  <ul>
+                    <li>host: sqltraining.flux.staging.db.zalan.do</li>
+                    <li>dbname: training</li>
+                    <li>username: training</li>
+                    <li>password: Training</li>
+                  </ul>
+	<aside class="notes">
+		Oh hey, these are some notes. They'll be hidden in your presentation, but you can see them if you open the speaker notes window (hit »S« on your keyboard).
+	</aside>
+
+                </section>
+            </section>
+            <section>
+
+              <section data-background="bookshelf.jpg">
+                <!-- https://www.flickr.com/photos/csumner/3033385360/in/photolist-5C3TMA-bD8jAm-4QYK2e-55hRet-9s2K9c-peCwBu-22ZnM1k-72eiDc-JfVrhh-8EdfNw-Cf1xx-2GsgH6-665h4w-arTmQU-dZy9Un-dr1VG4-4ot9D5-bQpXT-DhU18y-5vDqDP-diS3bf-4nEUuC-5y95xY-iYU5oh-oVqyhx-9vV7U-5m22hW-93BgnE-9nd1xA-49SSkg-5h7AEA-igzZPD-bEwS6Y-49SRwF-pV29as-5fZHAW-5vDoKx-8VQYZF-59Ko18-bCp3Bw-pCzsHP-diS1A9-bCoSd1-ipmhdR-oPMx-iskTFu-gCKS3-8hu15H-6Zswp5-8TYhbf
+https://www.flickr.com/photos/csumner/
+-->
+                <h1>Grouping sets</h1>
+              </section>
+
+                <section>
+                  <h3>Group By</h3>
+                  <div class="sli">
+                  <pre><code data-noescape >
+    SELECT <span class="fragment highlight-current-blue">country</span>,
+           <span class="fragment highlight-current-blue">count(*)</span>
+      FROM customers
+     GROUP BY <span data-fragment-index="0" class="fragment highlight-blue">country</span>;
+                  </code></pre>
+                  <pre><code>
+  | country      | aggregate |
+  |--------------+-----------|
+  | South Africa |       935 |
+  | Australia    |      1034 |
+  | UK           |      1002 |
+  | Germany      |      1004 |
+  | Japan        |       989 |
+  | US           |     10000 |
+  | China        |      1002 |
+  | Canada       |      1004 |
+  | Russia       |      1012 |
+  | Chile        |      1047 |
+  | France       |       971 |
+                  </code></pre>
+                  </div>
+                  <aside class="notes">
+                    <ul>
+                      <li>List of Grouping columns</li>
+                      <li>Aggregate function</li>
+                      <li>On Result of WHERE</li>
+                    </ul>
+                  </aside>
+                </section>
+            </section>
+            <section>
+              <section data-background="window1.jpg">
+                <!-- https://www.pexels.com/photo/architectural-design-architecture-building-business-454499/
+no attributition required
+-->
+                <h1>Window Functions</h1>
+              </section>
+
+              <section>
+                <div>
+                  <h3>What is a window function?</h3>
+                  <ul>
+                    <li>calculation across set of rows</li>
+                    <li>aggregate function</li>
+                    <li>without grouping rows</li>
+                    <li>rows retain identity</li>
+                  </ul>
+                </div>
+              </section>
+
+              <section>
+                <h3>Example data</h3>
+                <div class="sli">
+                    <pre><code>
+SELECT * FROM c;
+                    </code>
+                    </pre>
+                    <pre><code>
+ a
+────
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10                    </code>
+                    </pre>
+
+                </div>
+              </section>
+
+              <section>
+                <h3>Simplest Example</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, <span class="emphasize">sum(a) over()</span> from c;
+                  </code></pre>
+                  <pre><code>
+ a  │ sum
+────┼─────
+  1 │  55
+  2 │  55
+  3 │  55
+  4 │  55
+  5 │  55
+  6 │  55
+  7 │  55
+  8 │  55
+  9 │  55
+ 10 │  55
+                  </code></pre>
+                </div>
+              </section>
+
+              <section>
+                <h3>Declare Windows</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over <span class="emphasize">w</span>,
+          count(*) over <span class="emphasize">w</span>
+  from c
+<span class="emphasize">window w as ()</span>;
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │  55 │    10
+  2 │  55 │    10
+  3 │  55 │    10
+  4 │  55 │    10
+  5 │  55 │    10
+  6 │  55 │    10
+  7 │  55 │    10
+  8 │  55 │    10
+  9 │  55 │    10
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+              </section>
+
+              <section>
+                <h3>Frame Defaults</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+ from c
+window w as (<span class="emphasize">RANGE BETWEEN
+               UNBOUNDED PRECEDING
+               AND CURRENT ROW</span>);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │  55 │    10
+  2 │  55 │    10
+  3 │  55 │    10
+  4 │  55 │    10
+  5 │  55 │    10
+  6 │  55 │    10
+  7 │  55 │    10
+  8 │  55 │    10
+  9 │  55 │    10
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+              </section>
+            </section>
+
+            <section>
+              <section data-background="window2.jpg">
+                <!-- https://www.flickr.com/photos/enricomatteucci/
+https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYYz6m-cp5usy-WDzKi-Y54w7-G1e9am-UNAkQJ-P6EqtY-XwzpJT-c7kRdo-9EdBUH-6MXcS9-q8BwjF-24q7hAU-3PtK2W-77DzZ6-4BfYdV-fLUQJU-5DzmdC-GvJUaT-4NNaza-7UAPT4-D3stns-8gkjqc-77vap1-eghMnb-6Ua3jj-YKPpQg-GiY1X2-Hiy5se-e9rhv9-Dsqh3Z-8CczzY-2ei5Cr-tLWD-9SDB2y-dc4RjF-atcH7v-f5LnK7-hcbSNf-4m5s2Y-qmkLNw-6fHKmW-dhzTnA-fk1rac-9zDEKE-hdohht-djDZwj-dhzKmg-awBJ9E -->
+                <h2 style="color: black">Window Syntax</h2>
+              </section>
+
+              <section>
+                <h3>Window Clause</h3>
+                <ul>
+                  <li>Partition clause</li>
+                  <li>Order by clause</li>
+                  <li>Frame
+                    <ul>
+                      <li>Range</li>
+                      <li>Rows</li>
+                    </ul>
+                  </li>
+                </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>all optional</li>
+                    <li>beware of defaults</li>
+                  </ul>
+                </aside>
+              </section>
+
+              <section>
+                <h3>Window Syntax</h3>
+                <div class="sli" style="flex-wrap: wrap;">
+                  <pre><code>
+   WINDOW (
+     [PARTITION BY expression]
+     [ORDER BY expression]
+     [
+       { RANGE | ROWS }
+       { frame_start | BETWEEN frame_start AND frame_end }
+     ]
+   )
+              </code></pre>
+                </div>
+                <div style="font-size:70%;">
+                  <p><em>frame_start</em> and <em>frame_end</em> can be:</p>
+                  <ul>
+                    <li>UNBOUNDED PRECEDING</li>
+                    <li><em>value</em> PRECEDING</li>
+                    <li>CURRENT ROW</li>
+                    <li><em>value</em> FOLLOWING</li>
+                    <li>UNBOUNDED FOLLOWING</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>brackets are optional</li>
+                    <li>braces are selections</li>
+                    <li>pipe split alternatives</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Frame Defaults</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+ from c
+window w as (RANGE BETWEEN
+               UNBOUNDED PRECEDING 
+               AND <span class="emphasize">CURRENT ROW</span>);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │  55 │    10
+  2 │  55 │    10
+  3 │  55 │    10
+  4 │  55 │    10
+  5 │  55 │    10
+  6 │  55 │    10
+  7 │  55 │    10
+  8 │  55 │    10
+  9 │  55 │    10
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>no partion defined</p>
+                  <p>no ordering defined</p>
+                  <p>What does CURRENT ROW mean?</p>
+                </aside>
+            </section>
+
+            <section>
+              <h2>Current Row</h2>
+              <ul>
+                <li>Literal row in ROWS mode</li>
+                <li>First/last row with same ORDER BY value</li>
+                <li>First/last row of the partition</li>
+              </ul>
+              <aside class="notes">
+                In RANGE mode without Partition:
+
+                Partition is the whole set.
+              </aside>
+            </section>
+
+            <section>
+                <h3>Back to example</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+ from c
+window w as (<span class="emphasize">RANGE</span> BETWEEN
+               UNBOUNDED PRECEDING
+               AND CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │  55 │    10
+  2 │  55 │    10
+  3 │  55 │    10
+  4 │  55 │    10
+  5 │  55 │    10
+  6 │  55 │    10
+  7 │  55 │    10
+  8 │  55 │    10
+  9 │  55 │    10
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes"></aside>
+            </section>
+
+            <section>
+                <h3>Rows mode</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+ from c
+window w as (<span class="emphasize">ROWS</span> BETWEEN
+               UNBOUNDED PRECEDING
+               AND CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │   1 │     1
+  2 │   3 │     2
+  3 │   6 │     3
+  4 │  10 │     4
+  5 │  15 │     5
+  6 │  21 │     6
+  7 │  28 │     7
+  8 │  36 │     8
+  9 │  45 │     9
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>literal CURRENT ROW</p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Limit Current Range</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from c
+window w as (<span class="emphasize">RANGE</span> CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │  55 │    10
+  2 │  55 │    10
+  3 │  55 │    10
+  4 │  55 │    10
+  5 │  55 │    10
+  6 │  55 │    10
+  7 │  55 │    10
+  8 │  55 │    10
+  9 │  55 │    10
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>use <em>frame_start</em> only</p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Limit Current Row</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from c
+window w as (<span class="emphasize">ROWS</span> CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │   1 │     1
+  2 │   2 │     1
+  3 │   3 │     1
+  4 │   4 │     1
+  5 │   5 │     1
+  6 │   6 │     1
+  7 │   7 │     1
+  8 │   8 │     1
+  9 │   9 │     1
+ 10 │  10 │     1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>literal CURRENT ROW</p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Example Following</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from c
+window w as (ROWS between CURRENT ROW
+                  and <span class="emphasize">1 FOLLOWING</span>);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │   3 │     2
+  2 │   5 │     2
+  3 │   7 │     2
+  4 │   9 │     2
+  5 │  11 │     2
+  6 │  13 │     2
+  7 │  15 │     2
+  8 │  17 │     2
+  9 │  19 │     2
+ 10 │  10 │     1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>Missing row is not null, the are IGNORED</p>
+                  <p>Same for PRECEDING</p>
+                </aside>
+            </section>
+
+          </section>
+
+          <section data-transition="slide">
+            <section>
+                <h2>Window with ORDER BY</h2>
+                <aside class="notes">
+                  <p>until now FRAME without ordering and partitioning</p>
+                </aside>
+            </section>
+
+            <section data-transistion="fade">
+                <h3>Simple order by</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(a) over w
+  from c
+window w as (<span class="emphasize">order by</span> a);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │   1 │     1
+  2 │   3 │     2
+  3 │   6 │     3
+  4 │  10 │     4
+  5 │  15 │     5
+  6 │  21 │     6
+  7 │  28 │     7
+  8 │  36 │     8
+  9 │  45 │     9
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section>
+                <h3>Order by with defaults</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(a) over w
+  from c
+window w as (
+ order by a
+ <span class="emphasize">RANGE</span> between UNBOUNDED PRECEDING 
+       and CURRENT ROW
+);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │   1 │     1
+  2 │   3 │     2
+  3 │   6 │     3
+  4 │  10 │     4
+  5 │  15 │     5
+  6 │  21 │     6
+  7 │  28 │     7
+  8 │  36 │     8
+  9 │  45 │     9
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section>
+                <h3>Order by Current Row</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from c
+window w as (order by a
+             RANGE <span class="emphasize">CURRENT ROW</span>);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │   1 │     1
+  2 │   2 │     1
+  3 │   3 │     1
+  4 │   4 │     1
+  5 │   5 │     1
+  6 │   6 │     1
+  7 │   7 │     1
+  8 │   8 │     1
+  9 │   9 │     1
+ 10 │  10 │     1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>ORDER BY current row are the peers</p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Use Duplicates</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select * from d;
+                  </code></pre>
+                  <pre><code>
+ a
+───
+ 1
+ 1
+ 2
+ 2
+ 3
+ 3
+ 4
+ 4
+ 5
+ 5
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section>
+                <h3>Empty Window Specification</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as ();
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │  30 │    10
+ 1 │  30 │    10
+ 2 │  30 │    10
+ 2 │  30 │    10
+ 3 │  30 │    10
+ 3 │  30 │    10
+ 4 │  30 │    10
+ 4 │  30 │    10
+ 5 │  30 │    10
+ 5 │  30 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>only the sum changed</p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Order By with Duplicates</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (<span class="emphasize">ORDER BY</span> a);
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   2 │     2
+ 1 │   2 │     2
+ 2 │   6 │     4
+ 2 │   6 │     4
+ 3 │  12 │     6
+ 3 │  12 │     6
+ 4 │  20 │     8
+ 4 │  20 │     8
+ 5 │  30 │    10
+ 5 │  30 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>order value defines peers</li>
+                    <li>current row for peers</li>
+                    <li>rolling sum for groups</li>
+                    <li>aggregate equal for peers</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Remember the Defaults</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       ORDER BY a
+       <span class="emphasize">RANGE</span> BETWEEN UNBOUNDED PRECEDING
+             AND CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   2 │     2
+ 1 │   2 │     2
+ 2 │   6 │     4
+ 2 │   6 │     4
+ 3 │  12 │     6
+ 3 │  12 │     6
+ 4 │  20 │     8
+ 4 │  20 │     8
+ 5 │  30 │    10
+ 5 │  30 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section>
+                <h3>Rows with Duplicates</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       ORDER BY a
+       <span class="emphasize">ROWS</span> BETWEEN UNBOUNDED PRECEDING
+            AND CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   1 │     1
+ 1 │   2 │     2
+ 2 │   4 │     3
+ 2 │   6 │     4
+ 3 │   9 │     5
+ 3 │  12 │     6
+ 4 │  16 │     7
+ 4 │  20 │     8
+ 5 │  25 │     9
+ 5 │  30 │    10
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>Test data vs. Production data</p>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Current Row for RANGE</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (ORDER BY a
+             RANGE <span class="emphasize">CURRENT ROW</span>);
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   2 │     2
+ 1 │   2 │     2
+ 2 │   4 │     2
+ 2 │   4 │     2
+ 3 │   6 │     2
+ 3 │   6 │     2
+ 4 │   8 │     2
+ 4 │   8 │     2
+ 5 │  10 │     2
+ 5 │  10 │     2
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section>
+                <h3>Current Row for ROWS mode</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (ORDER BY a
+             <span class="emphasize">ROWS</span> CURRENT ROW);
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   1 │     1
+ 1 │   1 │     1
+ 2 │   2 │     1
+ 2 │   2 │     1
+ 3 │   3 │     1
+ 3 │   3 │     1
+ 4 │   4 │     1
+ 4 │   4 │     1
+ 5 │   5 │     1
+ 5 │   5 │     1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+          </section>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.load.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+      //enables simple reload during development
+      history: true,
+      viewDistance: 3,
+      transition: 'fade',
+      dependencies: [
+      { src: 'plugin/notes/notes.js', async: true },
+      ]});
+    </script>
+</body>
+</html>
