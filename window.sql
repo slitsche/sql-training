@@ -117,8 +117,32 @@ select a, sum(a) over w,
 window w as (order by a
              ROWS CURRENT ROW);
 
-select a, a % 2, sum(a) over(partition by (a % 2 = 0) order by a) 
-from c order by a;
+-- partitioning
+
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (PARTITION BY a);
+
+
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (PARTITION BY a < 3)
+  order by a;
+
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       PARTITION BY a < 3
+       ORDER BY a
+       --range between unbounded preceding and unbounded following
+)
+  order by a;
+
+select a, a % 2, sum(a) over(partition by (a < 3) order by a) 
+from d order by a;
 
 -- Local Variables:
 -- sql-product: postgres

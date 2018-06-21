@@ -82,6 +82,9 @@ https://www.flickr.com/photos/csumner/
 no attributition required
 -->
                 <h1>Window Functions</h1>
+                <aside class="notes">
+                  Kudos Bruce Momjian
+                </aside>
               </section>
 
               <section>
@@ -255,6 +258,7 @@ https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYY
                     <li>brackets are optional</li>
                     <li>braces are selections</li>
                     <li>pipe split alternatives</li>
+                    <li>unbounded preceding refers to start of partition</li>
                   </ul>
                 </aside>
             </section>
@@ -267,7 +271,7 @@ select a, sum(a) over w,
           count(*) over w
  from c
 window w as (RANGE BETWEEN
-               UNBOUNDED PRECEDING 
+               UNBOUNDED PRECEDING
                AND <span class="emphasize">CURRENT ROW</span>);
                   </code></pre>
                   <pre><code>
@@ -764,6 +768,109 @@ window w as (ORDER BY a
                 </aside>
             </section>
           </section>
+
+          <section data-transition="slide">
+            <section>
+              <h2>Partition By</h2>
+            </section>
+
+            <section>
+                <h3>Simple Partition By</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (<span class="emphasize">PARTITION BY a</span>);
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   2 │     2
+ 1 │   2 │     2
+ 2 │   4 │     2
+ 2 │   4 │     2
+ 3 │   6 │     2
+ 3 │   6 │     2
+ 4 │   8 │     2
+ 4 │   8 │     2
+ 5 │  10 │     2
+ 5 │  10 │     2
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>same as RANGE CURRENT ROW</li>
+                    <li>partition matches window frame</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Split into 2 partitions</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (PARTITION BY <span class="emphasize">a < 3</span>)
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+ 1 │   6 │     4
+ 1 │   6 │     4
+ 2 │   6 │     4
+ 2 │   6 │     4
+ 3 │  24 │     6
+ 3 │  24 │     6
+ 4 │  24 │     6
+ 4 │  24 │     6
+ 5 │  24 │     6
+ 5 │  24 │     6
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>partition DOES NOT matches window frame</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Partition and Group by</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       PARTITION BY a < 3
+       <span class="emphasize">ORDER BY a</span>
+)
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+<div style="background-color:#81DAF5;display:inline-block;"> 1 │   2 │     2
+ 1 │   2 │     2
+ 2 │   6 │     4
+ 2 │   6 │     4</div>
+ 3 │   6 │     2
+ 3 │   6 │     2
+ 4 │  14 │     4
+ 4 │  14 │     4
+ 5 │  24 │     6
+ 5 │  24 │     6
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>partition DOES NOT matches window frame</li>
+                  </ul>
+                </aside>
+            </section>
+          </section>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.load.js"></script>
@@ -774,6 +881,7 @@ window w as (ORDER BY a
       history: true,
       viewDistance: 3,
       transition: 'fade',
+      controlsTutorial: false,
       dependencies: [
       { src: 'plugin/notes/notes.js', async: true },
       ]});
