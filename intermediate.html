@@ -16,7 +16,11 @@
         <body>
     <div class="reveal">
         <div class="slides">
-            <section>Slide 1</section>
+          <section>
+            <h1>SQL Intermediate</h1>
+            <p>Stefan Litsche</p>
+            <p>26-06-2018</p>
+          </section>
             <section>
                 <section>Setup</section>
                 <section>
@@ -818,10 +822,10 @@ window w as (PARTITION BY <span class="emphasize">a < 3</span>)
                   <pre><code>
  a │ sum │ count
 ───┼─────┼───────
- 1 │   6 │     4
+<div style="background-color:#81DAF5;display:inline-block;"> 1 │   6 │     4
  1 │   6 │     4
  2 │   6 │     4
- 2 │   6 │     4
+ 2 │   6 │     4</div>
  3 │  24 │     6
  3 │  24 │     6
  4 │  24 │     6
@@ -832,7 +836,8 @@ window w as (PARTITION BY <span class="emphasize">a < 3</span>)
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>partition DOES NOT matches window frame</li>
+                    <li>partition with duplicates</li>
+                    <li>missing ORDER BY: frame defaults to partition</li>
                   </ul>
                 </aside>
             </section>
@@ -866,7 +871,81 @@ window w as (
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>partition DOES NOT matches window frame</li>
+                    <li>Order by changes the frame</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Defaults for frame</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       PARTITION BY a < 3
+       ORDER BY a
+       <span class="emphasize">RANGE
+        between UNBOUNDED PRECEDING
+        and CURRENT ROW</span>
+)
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+<div style="background-color:#81DAF5;display:inline-block;"> 1 │   2 │     2
+ 1 │   2 │     2
+ 2 │   6 │     4
+ 2 │   6 │     4</div>
+ 3 │   6 │     2
+ 3 │   6 │     2
+ 4 │  14 │     4
+ 4 │  14 │     4
+ 5 │  24 │     6
+ 5 │  24 │     6
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li></li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Rows Mode with Partition</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       PARTITION BY a < 3
+       ORDER BY a
+       <span class="emphasize">ROWS</span>
+        between UNBOUNDED PRECEDING
+        and CURRENT ROW
+)
+                  </code></pre>
+                  <pre><code>
+ a │ sum │ count
+───┼─────┼───────
+<div style="background-color:#81DAF5;display:inline-block;"> 1 │   1 │     1
+ 1 │   2 │     2
+ 2 │   4 │     3
+ 2 │   6 │     4</div>
+ 3 │   3 │     1
+ 3 │   6 │     2
+ 4 │  10 │     3
+ 4 │  14 │     4
+ 5 │  19 │     5
+ 5 │  24 │     6
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li></li>
                   </ul>
                 </aside>
             </section>
@@ -881,6 +960,7 @@ window w as (
       history: true,
       viewDistance: 3,
       transition: 'fade',
+      /* disable blinking cursors */
       controlsTutorial: false,
       dependencies: [
       { src: 'plugin/notes/notes.js', async: true },

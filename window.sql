@@ -141,6 +141,27 @@ window w as (
 )
   order by a;
 
+select a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       PARTITION BY a < 3
+       ORDER BY a
+       RANGE between UNBOUNDED PRECEDING and CURRENT ROW
+)
+  order by a;
+
+select  a, sum(a) over w,
+          count(*) over w
+  from d
+window w as (
+       PARTITION BY a < 3
+       ORDER BY a
+       ROWS between UNBOUNDED PRECEDING and CURRENT ROW
+)
+order by int4(a>=3), 3;
+
+
 select a, a % 2, sum(a) over(partition by (a < 3) order by a) 
 from d order by a;
 
