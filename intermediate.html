@@ -21,23 +21,36 @@
             <p>Stefan Litsche</p>
             <p>26-06-2018</p>
           </section>
-            <section>
-                <section>Setup</section>
-                <section>
-                  <h2>Training Database</h2>
-                  <ul>
-                    <li>host: sqltraining.flux.staging.db.zalan.do</li>
-                    <li>dbname: training</li>
-                    <li>username: training</li>
-                    <li>password: Training</li>
-                  </ul>
-	<aside class="notes">
-		Oh hey, these are some notes. They'll be hidden in your presentation, but you can see them if you open the speaker notes window (hit »S« on your keyboard).
-	</aside>
+            <section data-transition="slide">
+              <section>
+                <h2>Setup</h2>
+              </section>
 
-                </section>
-            </section>
             <section>
+                <h2>Training Database</h2>
+                <ul>
+                <li>host: sqltraining.flux.staging.db.zalan.do</li>
+                <li>dbname: training</li>
+                <li>username: training</li>
+                <li>password: Training</li>
+                </ul>
+    <aside class="notes">
+    </aside>
+            </section>
+
+            <section>
+                <h3>Sample dataset</h3>
+                <ul>
+                <li>customers</li>
+                <li>orders</li>
+                <li>orderlines</li>
+                </ul>
+                <aside class="notes">
+                Available till end of wee
+                </aside>
+            </section>
+            </section>
+            <section data-transition="slide">
 
               <section data-background="bookshelf.jpg">
                 <!-- https://www.flickr.com/photos/csumner/3033385360/in/photolist-5C3TMA-bD8jAm-4QYK2e-55hRet-9s2K9c-peCwBu-22ZnM1k-72eiDc-JfVrhh-8EdfNw-Cf1xx-2GsgH6-665h4w-arTmQU-dZy9Un-dr1VG4-4ot9D5-bQpXT-DhU18y-5vDqDP-diS3bf-4nEUuC-5y95xY-iYU5oh-oVqyhx-9vV7U-5m22hW-93BgnE-9nd1xA-49SSkg-5h7AEA-igzZPD-bEwS6Y-49SRwF-pV29as-5fZHAW-5vDoKx-8VQYZF-59Ko18-bCp3Bw-pCzsHP-diS1A9-bCoSd1-ipmhdR-oPMx-iskTFu-gCKS3-8hu15H-6Zswp5-8TYhbf
@@ -56,19 +69,19 @@ https://www.flickr.com/photos/csumner/
      GROUP BY <span data-fragment-index="0" class="fragment highlight-blue">country</span>;
                   </code></pre>
                   <pre><code>
-  | country      | aggregate |
-  |--------------+-----------|
-  | South Africa |       935 |
-  | Australia    |      1034 |
-  | UK           |      1002 |
-  | Germany      |      1004 |
-  | Japan        |       989 |
-  | US           |     10000 |
-  | China        |      1002 |
-  | Canada       |      1004 |
-  | Russia       |      1012 |
-  | Chile        |      1047 |
-  | France       |       971 |
+   country    │ aggregate 
+──────────────┼───────────
+ France       │       971
+ China        │      1002
+ Australia    │      1034
+ UK           │      1002
+ US           │     10000
+ Germany      │      1004
+ Canada       │      1004
+ Chile        │      1047
+ South Africa │       935
+ Japan        │       989
+ Russia       │      1012
                   </code></pre>
                   </div>
                   <aside class="notes">
@@ -79,13 +92,49 @@ https://www.flickr.com/photos/csumner/
                     </ul>
                   </aside>
                 </section>
+
+                <section>
+                  <h3>Ordered groups</h3>
+                  <div class="sli">
+                  <pre><code data-noescape >
+    SELECT country AS realm,
+           count(*) AS customers
+      FROM customers
+     GROUP BY <span class="emphasize">realm</span>
+     ORDER BY <span class="emphasize">customers</span> DESC;
+                  </code></pre>
+                  <pre><code>
+    realm     │ customers
+──────────────┼───────────
+ US           │     10000
+ Chile        │      1047
+ Australia    │      1034
+ Russia       │      1012
+ Germany      │      1004
+ Canada       │      1004
+ China        │      1002
+ UK           │      1002
+ Japan        │       989
+ France       │       971
+ South Africa │       935
+                  </code></pre>
+                  </div>
+                  <aside class="notes">
+                    <ul>
+                      <li>Refer to alias</li>
+                    </ul>
+                  </aside>
+                </section>
             </section>
-            <section>
-              <section data-background="window1.jpg">
+            <section data-transition="slide">
+              <section data-background="window-triple.jpg">
                 <!-- https://www.pexels.com/photo/architectural-design-architecture-building-business-454499/
-no attributition required
+no attributition required  window1.jpg
+
+https://www.flickr.com/photos/islandjoe/ window-triple.jpg
 -->
                 <h1>Window Functions</h1>
+                <div class="attributition">https://www.flickr.com/photos/islandjoe/</div>
                 <aside class="notes">
                   Kudos Bruce Momjian
                 </aside>
@@ -210,7 +259,7 @@ window w as (<span class="emphasize">RANGE BETWEEN
               <section data-background="window2.jpg">
                 <!-- https://www.flickr.com/photos/enricomatteucci/
 https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYYz6m-cp5usy-WDzKi-Y54w7-G1e9am-UNAkQJ-P6EqtY-XwzpJT-c7kRdo-9EdBUH-6MXcS9-q8BwjF-24q7hAU-3PtK2W-77DzZ6-4BfYdV-fLUQJU-5DzmdC-GvJUaT-4NNaza-7UAPT4-D3stns-8gkjqc-77vap1-eghMnb-6Ua3jj-YKPpQg-GiY1X2-Hiy5se-e9rhv9-Dsqh3Z-8CczzY-2ei5Cr-tLWD-9SDB2y-dc4RjF-atcH7v-f5LnK7-hcbSNf-4m5s2Y-qmkLNw-6fHKmW-dhzTnA-fk1rac-9zDEKE-hdohht-djDZwj-dhzKmg-awBJ9E -->
-                <h2 style="color: black">Window Syntax</h2>
+                <h1 style="color: black">Window Syntax</h1>
               </section>
 
               <section>

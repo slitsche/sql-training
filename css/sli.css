@@ -11,3 +11,14 @@
 .emphasize {
     color: #1b91ff;
 }
+
+div.attributition {
+    font-size: 50%;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    /*
+    transform: translateX(-50%);
+    right: 50px;
+    bottom: 0; */
+}
