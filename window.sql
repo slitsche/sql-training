@@ -165,7 +165,25 @@ order by int4(a>=3), 3;
 select a, a % 2, sum(a) over(partition by (a < 3) order by a) 
 from d order by a;
 
+SELECT customerid, country, netamount,
+       --count(*)       OVER (cty),
+       sum(netamount) over custcty,
+       sum(netamount) OVER (cty)
+  FROM customers
+  JOIN orders USING (customerid)
+WINDOW cty AS (PARTITION BY country),
+       custcty AS (cty order by customerid range current row)
+order by customerid
+ LIMIT 10;
 
+
+select distinct orderdate, sum(netamount) over w
+from orders
+window w as (partition by orderdate)
+order by orderdate
+limit 5;
+
+--------------------  Group by
     SELECT country,
            count(*) AS aggregate
       FROM customers

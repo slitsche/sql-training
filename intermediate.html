@@ -1394,6 +1394,58 @@ window w as (
                   </ul>
                 </aside>
             </section>
+
+            <section>
+              <p>Exercise: List the order with their country, netamount and the
+              netamount per country.</p>
+                <div class="fragment">
+                  <pre><code data-noescape>
+SELECT customerid, country, netamount,
+       sum(netamount) OVER cty
+  FROM customers
+  JOIN orders USING (customerid)
+WINDOW cty AS (PARTITION BY country)
+                  </code></pre>
+                  <pre><code>
+ customerid │ country │ netamount │    sum
+────────────┼─────────┼───────────┼────────────
+          2 │ US      │      5.08 │ 1172676.73
+          3 │ US      │     39.06 │ 1172676.73
+          6 │ US      │    323.30 │ 1172676.73
+          7 │ US      │    341.44 │ 1172676.73
+         11 │ US      │    285.39 │ 1172676.73
+         12 │ US      │    350.87 │ 1172676.73
+         13 │ US      │     83.31 │ 1172676.73
+         13 │ US      │    227.45 │ 1172676.73
+                  </code></pre>
+                </div>
+                <aside class="notes"></aside>
+            </section>
+
+            <section>
+              <p>Exercise: List the customer for every order with their country,
+              netamount, netamount per customer and the
+              netamount per country.</p>
+                <div class="fragment">
+                  <pre><code data-noescape>
+SELECT customerid, country, netamount,
+       sum(netamount) OVER custcty,
+       sum(netamount) OVER cty
+  FROM customers
+  JOIN orders USING (customerid)
+WINDOW cty AS (PARTITION BY country)
+       custcty AS (<span class="emphasize">cty</span> order by customerid range current row);
+                  </code></pre>
+                  <pre><code>
+ customerid │ country │ netamount │  sum   │    sum
+────────────┼─────────┼───────────┼────────┼────────────
+         12 │ US      │    350.87 │ 350.87 │ 1172676.73
+         13 │ US      │     83.31 │ 310.76 │ 1172676.73
+         13 │ US      │    227.45 │ 310.76 │ 1172676.73
+                  </code></pre>
+                </div>
+                <aside class="notes"></aside>
+            </section>
           </section>
         </div>
     </div>
