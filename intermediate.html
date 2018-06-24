@@ -355,7 +355,6 @@ select a,b,count(*)
                   </code></pre>
                   </div>
                 <aside class="notes">
-                  <p>Grand total?</p>
                 </aside>
               </section>
 
@@ -387,7 +386,6 @@ select a,b,count(*)
                   </code></pre>
                   </div>
                 <aside class="notes">
-                  <p>Grand total?</p>
                 </aside>
               </section>
 
@@ -406,7 +404,6 @@ SELECT country, state,
                   </code></pre>
                   </div>
                 <aside class="notes">
-                  <p>Grand total?</p>
                 </aside>
               </section>
             </section>
@@ -414,7 +411,7 @@ SELECT country, state,
             <section data-transition="slide">
               <section>
 
-                <h2>Filter</h2>
+                <h2>Filter of groups</h2>
                 <img data-src="juhansonin_shelf-color.jpg"/>
                 <aside class="notes">
                   Filter Groups
@@ -1090,12 +1087,6 @@ window w as (<span class="emphasize">ORDER BY</span> a);
                   </code></pre>
                 </div>
                 <aside class="notes">
-                  <ul>
-                    <li>order value defines peers</li>
-                    <li>current row for peers</li>
-                    <li>rolling sum for groups</li>
-                    <li>aggregate equal for peers</li>
-                  </ul>
                 </aside>
             </section>
 
@@ -1127,6 +1118,12 @@ window w as (
                   </code></pre>
                 </div>
                 <aside class="notes">
+                  <ul>
+                    <li>order value defines peers</li>
+                    <li>current row for peers</li>
+                    <li>rolling sum for groups</li>
+                    <li>aggregate equal for peers</li>
+                  </ul>
                 </aside>
             </section>
 
