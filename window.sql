@@ -177,9 +177,114 @@ from d order by a;
       FROM customers
      GROUP BY realm
      ORDER BY customers DESC;
+
+     SELECT country,
+            count(*)                     AS row_count,
+            count(o.orderid)             AS orders,
+            count(distinct c.customerid) AS customers,
+            count(distinct o.customerid) AS active_customers
+       FROM customers c
+  LEFT JOIN orders o ON c.customerid = o.customerid
+      GROUP BY country;
+
+   SELECT country,
+          count(distinct o.customerid) AS active,
+          count(distinct c.customerid) filter (where o.orderid is null)
+          as inactive
+     FROM customers c
+LEFT JOIN orders o on o.customerid = c.customerid
+    GROUP BY country
+    order by country;
+
+   SELECT country,
+          count(distinct o.customerid) AS active,
+          count(distinct c.customerid) filter (where o.orderid is null)
+          as inactive,
+          count(distinct case when o.orderid is null
+          then c.customerid end) as alternate
+     FROM customers c
+LEFT JOIN orders o on o.customerid = c.customerid
+    GROUP BY country
+    order by country;
+
+    SELECT country,
+           count(*) as customers,
+           count(*)
+             FILTER (WHERE substring (lastname from 1 for 1) = 'A') AS withA
+      FROM customers
+  GROUP BY country
+  order by country;
+
+
+SELECT country,
+       mode() within group (order by prod_id) AS top_product
+  FROM customers c
+  LEFT JOIN orders AS o     ON c.customerid = o.customerid
+       JOIN orderlines AS l ON l.orderid = o.orderid
+      GROUP BY country
+      order by country;
+
 -------------
+-- grouping sets
+drop table s;
+
+create table s as
+select * from (
+select generate_series(1,3) a
+) a
+cross join (
+select  generate_series(1,2) b
+) b
+;
+
+select * from s;
+
+select a, count(*)
+  from s
+ group by a
+ order by a;
+
+select a,b,count(*)
+  from s
+ group by a,b
+ order by a,b;
+
+select a,b,count(*)
+  from s
+ group by
+   grouping sets((a,b), ())
+ order by a,b;
 
 
+select a,b,count(*)
+  from s
+ group by
+   grouping sets((a,b), a, b, ())
+ order by a,b;
+
+SELECT country, state,
+       count(*) AS aggregate
+  FROM customers
+ GROUP BY GROUPING SETS(
+                        (country, state),
+                        country
+ )
+ ORDER BY country, state
+
+-- HAVING
+
+  SELECT country,
+         count(*)
+    FROM customers
+GROUP BY country
+  HAVING count(*) > 1000
+  order by country;
+
+ SELECT date_part('week', orderdate), count(*), sum(netamount)
+   FROM orders
+  GROUP BY 1
+ HAVING count(*) <= 220 and sum(netamount) >= 42000
+  ORDER BY 1
 
 -- Local Variables:
 -- sql-product: postgres
