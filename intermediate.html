@@ -221,7 +221,7 @@ bookshelf.jpg-->
                 </section>
 
                 <section>
-                  <p>Excercise: Compare customer count per country with
+                  <p>Exercise: Compare customer count per country with
                     customer count whose last name
                     starts with 'A'.</p>
                   <div class="fragment sli">
@@ -390,11 +390,11 @@ select a,b,count(*)
               </section>
 
               <section>
-                <p>Excercise: Count the orders by country and state
+                <p>Exercise: Count the customers by country and state
                   and additional the count by country</p>
                 <div class="fragment sli">
                 <pre><code data-noescape >
-SELECT country, state,
+SELECT distinct country, state,
        count(*) AS aggregate
   FROM customers
  GROUP BY GROUPING SETS(
@@ -404,6 +404,9 @@ SELECT country, state,
                   </code></pre>
                   </div>
                 <aside class="notes">
+                  <p>We get duplicates for Canada, since all states are
+                    null.</p>
+                  <p>This can be achieved with <em>code</em>.</p>
                 </aside>
               </section>
             </section>
@@ -422,7 +425,7 @@ SELECT country, state,
                 <h3>Select Syntax</h3>
                 <div class="sli">
                 <pre><code data-noescape >
-SELECT 
+SELECT
     [projection]
     [ FROM from_item [, ...] ]
     [ WHERE condition ]
@@ -482,11 +485,11 @@ GROUP BY country
               </section>
 
               <section>
-                <p>Excercise: List all weeks with at most 220 orders (per week)
+                <p>Exercise: List all weeks with at most 220 orders (per week)
                   and a netamount of at least 42000 units.</p>
                 <div class="fragment sli">
                 <pre><code data-noescape >
-SELECT date_part('week', orderdate),
+SELECT date_trunc('week', orderdate),
        count(*),
        sum(netamount)
    FROM orders
@@ -495,16 +498,16 @@ SELECT date_part('week', orderdate),
     and sum(netamount) >= 42000;
                   </code></pre>
                 <pre><code data-noescape >
- date_part │ count │   sum
-───────────┼───────┼──────────
-         7 │   219 │ 43414.81
-        12 │   219 │ 42164.14
-        23 │   217 │ 42146.54
-        25 │   205 │ 42098.08
-        36 │   218 │ 43858.71
-        41 │   207 │ 42963.59
-        47 │   219 │ 44050.54
-        50 │   218 │ 44321.58
+       date_trunc       │ count │   sum
+────────────────────────┼───────┼──────────
+ 2004-11-15 00:00:00+00 │   219 │ 44050.54
+ 2004-05-31 00:00:00+00 │   217 │ 42146.54
+ 2004-12-06 00:00:00+00 │   218 │ 44321.58
+ 2004-10-04 00:00:00+00 │   207 │ 42963.59
+ 2004-03-15 00:00:00+00 │   219 │ 42164.14
+ 2004-02-09 00:00:00+00 │   219 │ 43414.81
+ 2004-06-14 00:00:00+00 │   205 │ 42098.08
+ 2004-08-30 00:00:00+00 │   218 │ 43858.71
                 </code></pre>
                 </div>
                 <aside class="notes">
@@ -523,13 +526,14 @@ SELECT date_part('week', orderdate),
             </section>
 
             <section data-transition="slide">
-              <section data-background="window-triple.jpg">
+              <section>
                 <!-- https://www.pexels.com/photo/architectural-design-architecture-building-business-454499/
 no attributition required  window1.jpg
 
 https://www.flickr.com/photos/islandjoe/ window-triple.jpg
 -->
-                <h1>Window Functions</h1>
+                <h2>Window Functions</h2>
+                <img data-src="window-triple.jpg"/>
                 <div class="attributition">https://www.flickr.com/photos/islandjoe/</div>
                 <aside class="notes">
                   Kudos Bruce Momjian
@@ -652,8 +656,9 @@ window w as (<span class="emphasize">RANGE BETWEEN
             </section>
 
             <section>
-              <section data-background="window2.jpg">
+              <section>
                 <!-- https://www.flickr.com/photos/enricomatteucci/
+                 data-background="window2.jpg"
 https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYYz6m-cp5usy-WDzKi-Y54w7-G1e9am-UNAkQJ-P6EqtY-XwzpJT-c7kRdo-9EdBUH-6MXcS9-q8BwjF-24q7hAU-3PtK2W-77DzZ6-4BfYdV-fLUQJU-5DzmdC-GvJUaT-4NNaza-7UAPT4-D3stns-8gkjqc-77vap1-eghMnb-6Ua3jj-YKPpQg-GiY1X2-Hiy5se-e9rhv9-Dsqh3Z-8CczzY-2ei5Cr-tLWD-9SDB2y-dc4RjF-atcH7v-f5LnK7-hcbSNf-4m5s2Y-qmkLNw-6fHKmW-dhzTnA-fk1rac-9zDEKE-hdohht-djDZwj-dhzKmg-awBJ9E -->
                 <h1 style="color: black">Window Syntax</h1>
               </section>
@@ -1447,6 +1452,17 @@ WINDOW cty AS (PARTITION BY country)
                 <aside class="notes"></aside>
             </section>
           </section>
+
+          <section>
+
+            <p>https://lago-webui-superset.saiki.zalan.do/</p>
+          </section>
+
+          <section>
+            <h3>Feedback</h3>
+            <p>http://bit.ly/1QgpTmR</p>
+            <p>68C5-W21</p>
+          </section>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.load.js"></script>
@@ -1459,7 +1475,7 @@ WINDOW cty AS (PARTITION BY country)
       transition: 'fade',
       /* disable blinking cursors */
       controlsTutorial: false,
-      slideNumber: true,
+      //slideNumber: true,
       dependencies: [
       { src: 'plugin/notes/notes.js', async: true },
       ]});
