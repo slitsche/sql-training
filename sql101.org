@@ -1,0 +1,127 @@
+#+TITLE: Intro to sql
+* Introduce myself
+** get the participants to know
+
+* Motivate
+best investment, longer usage then every programming language learned
+
+more stable than excel UI
+* Connect
+** Search_path
+** Cluster vs database
+** User and privileges
+* Tables and relations
+** Why relational database
+** relational algebra
+*** Table are relations
+a set of rows
+
+not ordered
+*** Tuple is a row in the table
+*** Tuple consists of one or more attributes
+skalar value
+
+Ordered set of columns
+*** combining tables makes it so powerful
+Which country has more than 5 mio people?
+How many shoes are in the shelf x?
+Which container was used most during the last hour?
+** Schema
+data have a defined structure: will ensure constraints
+** Catalog
+describes the schema
+** Founded by E.F.Codd in 1970 (IBM)
+* SQL is a strict language
+** statements
+*** Modify DML
+*** Define DDL
+** comments
+** Trennzeichen, delimiter
+** Reservierte Words, key words
+** Names
+* Data types and operators
+** numeric
+** strings
+*** single quotes
+*** concat
+** timestamp
+** boolean
+** Type Cast
+** Function and Operators to modify them
+- What is 84 divided by 2?
+** Compare
+** NULL
+** CASE statement
+* Table and table expressions
+** name from catalog
+** Order and limit
+- list the city names in upper case
+- build the sentence "the <city> has <population> inhabitants." from every row
+*** do not use "*"
+** Filter
+- list all cities with name 'berlin'
+- In which country is 'Moscow' located?
+- Which cities have less then 100 inhabitants?
+- Which cities names start with 'Y'?
+- Which cities names starting with 'Y' have more than 1.000.000 inhabitants?
+*** Order of evaluation of subexpressions
+**** CASE statement
+SELECT CASE WHEN x > 0 THEN y/x > 1.5 ELSE false END;
+** table expression
+* Cardinalities
+** 1:1
+** 1:m
+** n:m
+user subscribes to fashionfeed
+* Joins (Verbund)
+** kartesisches Product
+** 1:m
+*** join on FK
+**** you may miss entities from n
+**** you get all from m
+**** cardinatlity of result: m
+*** Join non FK column
+there may be m without corresponding n
+** distinct on
+* Combine sets
+** UNION ALL
+** INTERSECT ALL
+** EXCEPT ALL
+* Aggregates
+** 
+* Data quality
+** uniqueness/ identity
+** Events are unique, may have duplicates
+* Superset
+https://hipchat.zalando.net/chat/room/6062
+https://sites.google.com/zalando.de/data-services/data-lake
+https://sites.google.com/zalando.de/data-services/data-lake/suppor
+https://sites.google.com/zalando.de/data-services/data-lake/support
+https://drive.google.com/file/d/0Bz5yyeTuIKYYdjBwbnVVLW9hSmJNWTVnT2Y1SmpfRjlfNFlJ/view
+https://sites.google.com/zalando.de/data-services/data-lake/faq
+** Missing data?
+prod_eventlog_db=# select max(event_time) from zel_event.e68004_receive_receive_item ;
+            max
+────────────────────────────
+ 2018-07-03 11:04:58.199+02
+* resume
+** yousuf found explanation of joins helpful - prior knowledge
+** examples with x and y was confusing, better introduce the examples.
+identity of table and column was confusing
+** es scheint schwer, die syntax auf ein problem anzuwenden.
+*** was ist keyword was was ist name
+** Anwenden einer Funktion
+uebertragen von foo('tom') auf foo(columnname) was difficult
+** left and where is null
+6 vs 1 row
+** typing the url was a challenge
+- https
+- .de instead of .do
+** teach to read the error message
+** How to stop pgAdmin web?
+* I like to have
+** webserver running my presentation
+** accessible to participants
+** they can answer quizes
+** Aggregate the results per class
+** so that I can immediately see the understanding

@@ -1,0 +1,11 @@
+#+TITLE: SQL Performance for Developers
+* Data Modeling
+** Space Requirements of data types
+*** ENUM vs. Text
+*** UUID vs. Text
+Usage of text fields to keep UUIDs. Very space inefficient. uuid takes just 16 bytes, while text representation takes 37 bytes. It also proportionally increases index size.
+** Index
+*** Are part of data modeling task
+**** FK
+**** Partial Index
+useful for low cardinality columns with sked distribution

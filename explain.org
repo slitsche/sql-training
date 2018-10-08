@@ -1,0 +1,3 @@
+* Ideas
+** union vs union all
+union requires sort to remove the duplicates!
