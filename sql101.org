@@ -1,0 +1,107 @@
+#+TITLE: SQL 101
+
+* What is SQL
+** Structured
+** 1970
+** DML vs DDL
+* Database
+** Server
+
+sqltraining.flux.staging.db.zalan.do
+
+** Host
+** Database
+** Schema
+* SELECT
+https://www.postgresql.org/docs/10/sql-select.html
+* Projection and Expressions
+** Constant literals
+** Alias
+** Types
+*** NULL
+Chuck Norris of the database
+** Calculations
+https://www.postgresql.org/docs/10/functions-math.html
+** 
+* Table
+** What is a table
+*** Skalar, Column, Row
+*** Base table
+*** view
+*** Result of evaluation of table expression
+** FROM
+*** base table
+*** mind the schema
+*** project refer to column names
+*** Limit
+*** Order
+ASC is default, Nulls last
+
+List the 5 biggest countries (mind the nulls).
+*** apply function on columns
+get the surface area in square mile for the first 3 countries
+and show the country name with uppercase letters.
+
+1 sqmi = 2 589 988 m²
+
+*** Aggregate functions
+
+
+https://www.postgresql.org/docs/10/functions-aggregate.html
+
+
+**** count(*)
+
+**** count(0)
+**** count(null)
+
+**** Assignment
+
+Get the average surface area from all countries.
+
+* WHERE
+Filter rows
+
+SELECT c_name, c_country_code3 FROM city WHERE c_name = 'Szeged';
+
+How many cities have the name 'Berlin'?
+
+
+How many cities have the name 'Berlin' and are a capital?
+
+** Logical operators
+
+** AND/OR
+** IN
+SELECT c_name, c_country_code3 FROM city WHERE c_name IN ('Hannover', 'Hanover'); -- IN
+
+** LIKE
+
+* Join
+
+** INNER JOIN
+
+** LEFT OUTER JOIN
+and RIGHT OUTER JOIN
+** FULL OUTER JOIN
+** Assinment
+*** What is the join condition for country and city?
+*** List all Cities from India using a join.
+SELECT city.c_name, c_population, c_local_name
+  FROM city JOIN country ON c_country_code3 = c_code3
+ WHERE country.c_name = 'India'
+
+*** List the 10 biggest (by population) cities from Indonesia
+SELECT city.c_name, c_population, c_local_name
+  FROM city JOIN country ON c_country_code3 = c_code3
+ WHERE country.c_name = 'Indonesia'
+ ORDER BY c_population DESC
+ LIMIT 10;
+
+*** List all countries without a capital using left join
+SELECT country.c_name, c_code3
+  FROM country
+  LEFT JOIN city ON c_code3 = c_country_code3 AND c_is_capital
+ WHERE city.c_id IS NULL;
+
+* Union
