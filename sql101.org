@@ -73,10 +73,12 @@ How many cities have the name 'Berlin' and are a capital?
 
 ** AND/OR
 ** IN
-SELECT c_name, c_country_code3 FROM city WHERE c_name IN ('Hannover', 'Hanover'); -- IN
+SELECT c_name, c_country_code3
+FROM city WHERE c_name IN ('Hannover', 'Hanover'); -- IN
 
 ** LIKE
 
+Which city has a trailing '%' in c_distinction?
 * Join
 
 ** INNER JOIN
@@ -105,3 +107,10 @@ SELECT country.c_name, c_code3
  WHERE city.c_id IS NULL;
 
 * Union
+
+** other set operation
+
+** Union vs union all
+
+* Feedback
+https://bit.ly/2EdTnqr
