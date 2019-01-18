@@ -19,11 +19,12 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>26-06-2018</p>
+            <p>02-07-2018</p>
           </section>
             <section data-transition="slide">
               <section>
-                <h2>Setup</h2>
+                <!--h2>Setup</h2-->
+                <img src="SQL-valuable.png"/>
               </section>
 
             <section>
@@ -217,7 +218,10 @@ bookshelf.jpg-->
  Germany      │    433 │      571
                   </code></pre>
                   </div>
-                  <aside class="notes"></aside>
+                  <aside class="notes">
+                    <p>Why could we remove the distinct before the case?</p>
+                    <p>Why shouldn't we?</p>
+                  </aside>
                 </section>
 
                 <section>
@@ -406,7 +410,7 @@ SELECT distinct country, state,
                 <aside class="notes">
                   <p>We get duplicates for Canada, since all states are
                     null.</p>
-                  <p>This can be achieved with <em>code</em>.</p>
+                  <p>This can be avoided by using <em>distinct</em>.</p>
                 </aside>
               </section>
             </section>
@@ -428,7 +432,7 @@ SELECT distinct country, state,
 SELECT
     [projection]
     [ FROM from_item [, ...] ]
-    [ WHERE condition ]
+    [ WHERE where_condition ]
     [ GROUP BY grouping_element [, ...] ]
     [ <span class="emphasize">HAVING</span> condition [, ...] ]
                   </code></pre>
@@ -908,7 +912,7 @@ window w as (ROWS between CURRENT ROW
                   </code></pre>
                 </div>
                 <aside class="notes">
-                  <p>Missing row is not null, the are IGNORED</p>
+                  <p>Missing row is not null, it is IGNORED</p>
                   <p>Same for PRECEDING</p>
                 </aside>
             </section>
