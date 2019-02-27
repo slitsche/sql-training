@@ -28,18 +28,6 @@
               </section>
 
             <section>
-                <h2>Training Database</h2>
-                <ul>
-                <li>host: sqltraining.flux.staging.db.zalan.do</li>
-                <li>dbname: training</li>
-                <li>username: training</li>
-                <li>password: Training</li>
-                </ul>
-    <aside class="notes">
-    </aside>
-            </section>
-
-            <section>
                 <h3>Sample dataset</h3>
                 <ul>
                 <li>customers</li>
@@ -280,6 +268,7 @@ SELECT country,
                   </code></pre>
                   </div>
                   <aside class="notes">
+                    <p><em>ordered set aggregate function</em> require ordering</p>
                     <p>top seller per country</p>
                     <p>beware: duplicates</p>
                   </aside>
@@ -626,6 +615,18 @@ select a, sum(a) over <span class="emphasize">w</span>,
   8 │  55 │    10
   9 │  55 │    10
  10 │  55 │    10
+                  </code></pre>
+                </div>
+              </section>
+
+              <section>
+                <p>List the customerid and the total count of customers</p>
+                <div class="fragment sli">
+                  <pre><code data-noescape>
+select customerid, count(*) over()
+  from customers
+ order by customerid
+ limit 10;
                   </code></pre>
                 </div>
               </section>
