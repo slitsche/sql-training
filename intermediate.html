@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>02-07-2018</p>
+            <p>19-03-2019</p>
           </section>
             <section data-transition="slide">
               <section>
@@ -60,7 +60,7 @@ bookshelf.jpg-->
      GROUP BY <span data-fragment-index="0" class="fragment highlight-blue">country</span>;
                   </code></pre>
                   <pre><code>
-   country    │ aggregate 
+   country    │ count 
 ──────────────┼───────────
  France       │       971
  China        │      1002
@@ -620,7 +620,7 @@ select a, sum(a) over <span class="emphasize">w</span>,
               </section>
 
               <section>
-                <p>List the customerid and the total count of customers</p>
+                <p>List the first 10 customerid and the total count of customers</p>
                 <div class="fragment sli">
                   <pre><code data-noescape>
 select customerid, count(*) over()
@@ -1460,7 +1460,9 @@ WINDOW cty AS (PARTITION BY country)
 
           <section>
 
-            <p>https://lago-webui-superset.saiki.zalan.do/</p>
+            <p><a href="https://www.postgresql.org/docs/current/functions-window.html">
+                Check the docs</a></p>
+            <p>Check out Data Lake: <br/>https://lago-webui-superset.saiki.zalan.do/</p>
           </section>
 
           <section>
