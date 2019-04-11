@@ -1,11 +1,108 @@
 #+TITLE: SQL Performance for Developers
+* Getting to know?
+** Who has used OFFSET in queries?
+** Who likes statistics?
+** Contents
+- applies to relational dbs
+- details and commands will vary
+- which change the row
+- contrast to LSM Trees
+* Why are queries slow?
+** Always use Index?
+*** Removing index access made it faster
+even with SSD index and base table is more data to process than the base table alone.
+** we read to much data from disk
+improve performance by reducing IO
+** How do indexes Help here?
+* Indexes
+** What is it?
+*** Specific data structure
+*** Allocates space on disk
+*** holds redundant information
+*** CREATE INDEX own syntax
+** What is it for CS?
+*** Search tree
+*** double linked list
+we can read it in both directions.
+*** Leaf nodes hold reference to the address of the row
+*** Tree structure enables to find the leaf fast
+** Btree index
+** Index Access
+*** Search the tree
+*** Follow the leafs
+*** Load the rows the table
+this may require loading a lot of pages
+
+How many rows are in a page?
+*** How many blocks do we load
+upper bound depends on the high of the index
+
+compared to table scan we read much less blocks
+** At which cost?
+what does it cost to update the index?
+
+HOT updateso
+* How a database executes a query
+** There is no magic
+magic does not exist
+** how to read data
+rows is data stored in files
+
+how to find the row in the file the user asked for?
+
+Sequential read whole file (O(n))
+use an index, get the position, read the file from that position
+** discuss output of explain
+on simple example seq scan
+- discuss output of explain!!!
+  - costs
+  - time
+  - width
+** where does the costs come from?
+- cost model
+* How to decide which index to use?
+What information could we use to select the proper index?
+
+- columns in the where clause
+- operator used in where clause
+- columns in order by
+** Column in where clause with literal value
+- show wrong example
+- show analyze
+- discuss no index usage
+- assignment: fix it and check explain
+** Column where clause an volatile fn
+see example in 1.sql
+** Use index for range scan
+
+** Usage of multicolumn index matters
+- Shall we discuss the order of columns in respect to cardinality?
+** Index usage in ~order by~ clause
+*** also for TOP-N query
+** LIKE operator
+- for literal values only
+- Postgres and Binding parameter may not work
+- sql injection
+** Index-Only Scan
+** Summary
+Which types of access nodes we have seen?
+What is important to check in explain plan? (costs, rows, width)
+Which important patterns/mistakes?
 * Data Modeling
-** Space Requirements of data types
-*** ENUM vs. Text
-*** UUID vs. Text
-Usage of text fields to keep UUIDs. Very space inefficient. uuid takes just 16 bytes, while text representation takes 37 bytes. It also proportionally increases index size.
 ** Index
 *** Are part of data modeling task
 **** FK
 **** Partial Index
 useful for low cardinality columns with sked distribution
+** Space Requirements of data types
+*** ENUM vs. Text
+*** UUID vs. Text
+Usage of text fields to keep UUIDs. Very space inefficient. uuid takes just 16 bytes, while text representation takes 37 bytes. It also proportionally increases index size.
+** Rowheader Overhead
+24 bytes per row
+Null value bitmap (see valentines slide)
+** Toast
+** CTID might not be unique
+* Other topics
+** hook up seq scan
+postgres only
