@@ -1,6 +1,7 @@
 #+TITLE: SQL Performance for Developers
 * Getting to know?
-** Who has used OFFSET in queries?
+** Who has used OFFSET for pagination?
+** Who knows how to apply denormalization? (3NF)
 ** Who likes statistics?
 ** Contents
 - applies to relational dbs
@@ -14,7 +15,32 @@ even with SSD index and base table is more data to process than the base table a
 ** we read to much data from disk
 improve performance by reducing IO
 ** How do indexes Help here?
+* How a database executes a query
+** There is no magic
+magic does not exist
+** how to read data
+rows is data stored in files
+
+how to find the row in the file the user asked for?
+
+Sequential read whole file (O(n))
+use an index, get the position, read the file from that position
+** discuss output of explain
+on simple example seq scan
+- discuss output of explain!!!
+  - costs
+  - time
+  - width
+** where does the costs come from?
+- cost model
+*** administration
+set statistics_target in postgres
+*** What are the limitations?
+**** Extreme distributions or many rows
+**** correlated columns
+They are actually a design error (Normal Form violation).
 * Indexes
+Can we do better the sequential scan?  (reference to the example)
 ** What is it?
 *** Specific data structure
 *** Allocates space on disk
@@ -38,29 +64,17 @@ How many rows are in a page?
 upper bound depends on the high of the index
 
 compared to table scan we read much less blocks
+**** Range scan
+in case of range scan number of accessed blocks depends on the physical
+proximity.
+
+Administrator can influence that.  CLUSTER command
+
 ** At which cost?
 what does it cost to update the index?
 
 HOT updateso
-* How a database executes a query
-** There is no magic
-magic does not exist
-** how to read data
-rows is data stored in files
-
-how to find the row in the file the user asked for?
-
-Sequential read whole file (O(n))
-use an index, get the position, read the file from that position
-** discuss output of explain
-on simple example seq scan
-- discuss output of explain!!!
-  - costs
-  - time
-  - width
-** where does the costs come from?
-- cost model
-* How to decide which index to use?
+* How to leverage the index?
 What information could we use to select the proper index?
 
 - columns in the where clause
@@ -71,8 +85,11 @@ What information could we use to select the proper index?
 - show analyze
 - discuss no index usage
 - assignment: fix it and check explain
+*** TODO implicit conversion may introduce a funcion application
+  strType=intType (I was not able to create an example in postgres)
 ** Column where clause an volatile fn
 see example in 1.sql
+*** TODO what is the difference between stable and immutable?
 ** Use index for range scan
 
 ** Usage of multicolumn index matters
@@ -80,20 +97,29 @@ see example in 1.sql
 ** Index usage in ~order by~ clause
 *** also for TOP-N query
 ** LIKE operator
+- depends on Locale and index operator class
 - for literal values only
 - Postgres and Binding parameter may not work
 - sql injection
 ** Index-Only Scan
+** Pagination and OFFSET
+scalability
+** Join?  HashJoin
+** Correlated attributes example
 ** Summary
 Which types of access nodes we have seen?
-What is important to check in explain plan? (costs, rows, width)
+What is important to check in explain plan? (number of execution steps, costs, rows, width)
 Which important patterns/mistakes?
+* Create Index
+** Which indexes
+ btree, hash, gist, spgist, gin, and brin
+*** TODO What are differences?
+what are gin and gist indexes for?
+** Development task
+** Syntax
+** Delete and FK
+** Usecase partial index
 * Data Modeling
-** Index
-*** Are part of data modeling task
-**** FK
-**** Partial Index
-useful for low cardinality columns with sked distribution
 ** Space Requirements of data types
 *** ENUM vs. Text
 *** UUID vs. Text
