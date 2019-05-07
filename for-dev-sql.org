@@ -1,38 +1,156 @@
 #+TITLE: SQL Performance for Developers
 * Getting to know?
+** Who has used dBase?
+do you remeber set index command?
 ** Who has used OFFSET for pagination?
 ** Who knows how to apply denormalization? (3NF)
 ** Who likes statistics?
+** We want to put questions on a board
+backlog board
 ** Contents
 - applies to relational dbs
 - details and commands will vary
-- which change the row
+- block storage engine, which change the row
 - contrast to LSM Trees
 * Why are queries slow?
+** Clarify the meaning of block or page
+- continuous space on disk
+- has metadata about the rows in a page
+- can containg more than on page
+- is the smallest item read from disk and loaded into memory (shared memory)
+- in memory the state is maintained
+- dirty pages are synced with disk.
 ** Always use Index?
 *** Removing index access made it faster
 even with SSD index and base table is more data to process than the base table alone.
 ** we read to much data from disk
 improve performance by reducing IO
 ** How do indexes Help here?
+smaller segment to lookup the block address of a row
+** Database design and performance
+good performance starts with a good database design.
+
+What do we have to care about?
+*** 3 normal form
+*** remove unused data (do you need years of history)
+*** indexes are design/dev task
+*** too many indexes will hurt
+it rather shows that use case is not clear
+*** if data need to grow, indexes scale
+why do they scale?
+- simplest access pattern to find the row is SEQ SCAN
+- O (n)
+- index may point to the block which contains the row of interest
+- O (log(n)) for search
+- O(n) space complexity
 * How a database executes a query
 ** There is no magic
 magic does not exist
-** how to read data
-rows is data stored in files
+sometimes it is mentioned, that SQL is declarative.
 
-how to find the row in the file the user asked for?
-
-Sequential read whole file (O(n))
-use an index, get the position, read the file from that position
+But the way how you write a query may have big impact.
 ** discuss output of explain
 on simple example seq scan
 - discuss output of explain!!!
   - costs
   - time
   - width
+
+#+BEGIN_SRC sql
+explain select * from orders;
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..220.00 rows=12000 width=30)
+(1 row)
+
+
+#+END_SRC
+** Mention the options: analyze, buffers, verbose, costs
+
+details about buffers we can't discuss.  check the docs.
+
+#+BEGIN_SRC sql
+explain analyze select * from orders;
+                                                 QUERY PLAN
+------------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..220.00 rows=12000 width=30) (actual time=2.228..13.160 rows=12000 loops=1)
+ Planning time: 0.161 ms
+ Execution time: 15.606 ms
+(3 rows)
+
+
+#+END_SRC
+
+#+BEGIN_SRC sql
+explain (analyze, buffers) select * from orders;
+                                                QUERY PLAN
+-----------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..220.00 rows=12000 width=30) (actual time=0.032..5.681 rows=12000 loops=1)
+   Buffers: shared hit=100
+ Planning time: 0.116 ms
+ Execution time: 8.991 ms
+(4 rows)
+
+Blocks: (shared hit=96 read=1544 written=0) (local hit=0 read=0 written=0) (temp read=0 written=0)
+
+#+END_SRC
+** Excercise: Find the approach to rewrite a query
+Using window functions.
+
+Example should show two seq scans on the same table.
+
+Message:  reduce I/O.  At the cost of Memory usage.
+
+#+BEGIN_SRC sql
+
+create table tdoublet (
+       a, b)
+    as select * from (values
+    (1,2),
+    (1,2),
+    (2,3),
+    (3,4)
+) as x;
+
+explain analyze
+select a,b
+  from tdoublet
+ where a in (
+       select a
+         from tdoublet
+        group by a
+        having count(1) > 1);
+
+explain analyze
+select a,b from (
+select a,b,
+       count(1) over (partition by a range current row) as c
+  from tdoublet) as x
+ where c = 2;
+#+END_SRC
+*** Discussion
+- less execution nodes, less I/O -> faster execution
+- trade off I/O versus Memory allocation
+- memory is also a limited resource
+- available work_mem
+- sort on disk can slow the faster query again
+- depends on: distribution of the data (how big is the group of doublets)
 ** where does the costs come from?
-- cost model
+- cost model from the google slides
+
+Learning:  query planner has two inputs
+- the query
+- some knowledge about data distribution
+
+While the planner become more and more sophisticated the way how the query is
+written has a significant impact on the execution plan.
+
+If you want to have efficient queries you should understand the distribution of
+your data.
+*** Planner and indexes
+the planner decides on whether and if - which index to use.
+
+contrary to dBase.
 *** administration
 set statistics_target in postgres
 *** What are the limitations?
@@ -95,26 +213,78 @@ see example in 1.sql
 ** Usage of multicolumn index matters
 - Shall we discuss the order of columns in respect to cardinality?
 ** Index usage in ~order by~ clause
-*** also for TOP-N query
+refer to double linked list of leaf nodes
+*** also for TOP-N query and ~group by~ clause
+
+*** load the ordered query into a hashmap (in client app)
 ** LIKE operator
 - depends on Locale and index operator class
 - for literal values only
 - Postgres and Binding parameter may not work
 - sql injection
+*** TODO How to show that binding is treated differently?
+it is probably interesting for trainees to explore binding and execution plans.
 ** Index-Only Scan
 ** Pagination and OFFSET
 scalability
 ** Join?  HashJoin
+*** Hash join and not-selective predicates
+*** hash join and memory requirements
+**** sort on disk?
+**** work_mem setting
+per node in the execution plan
+**** consider width of the row
+smaller rows require less memory
+**** TODO Build and example
+*** Bitmap heap scan
+Answer from Tom Lane
+https://www.postgresql.org/message-id/12553.1135634231@sss.pgh.pa.us
+
+Example of t2colpk shows an Bitmap heap scan
+
 ** Correlated attributes example
+discuss example query using two predicates.
+both columns are correlated, functionally depended
+
+discuss importance of 3rd normal form
+
+Why is it okay to have a fact table with brutto and netto price?
 ** Summary
 Which types of access nodes we have seen?
 What is important to check in explain plan? (number of execution steps, costs, rows, width)
 Which important patterns/mistakes?
+* Reduce I/O - real world example
+** hash join and work_mem
+strategy
+instead of nested loop hash join executes an expensive query in one go
+*** to understand
+**** receive table is big
+**** per key (userid) there are around 35.000 rows
+**** rows are scattered over the blocks
+**** read more pages for few data
+**** read this big dropout for every row of the driving table
+this has to be expensive
+**** using hashjoin
+- allows to read the interesting part in one go
+- seq scan of temp table cheaper than scattered read
+- less dropout, because we can use all relevant userId per page
 * Create Index
 ** Which indexes
  btree, hash, gist, spgist, gin, and brin
 *** TODO What are differences?
 what are gin and gist indexes for?
+*** GIN index
+https://habr.com/en/company/postgrespro/blog/448746/
+
+- inverted index
+- not linked list of leaf nodes
+- operator for index defines class of operator in queries
+- ~array_ops~ and ~tsvector_ops~ are the most common
+- set operations
+- supported by the planner:  statistics per element are maintained
+- relatively expensive update
+- gin: limited for multicolumn indexes
+- extension btree_gin allows to combine btree and gin columns in one index!
 ** Development task
 ** Syntax
 ** Delete and FK
@@ -132,3 +302,5 @@ Null value bitmap (see valentines slide)
 * Other topics
 ** hook up seq scan
 postgres only
+** Without index, order of columns in group by matters
+blog post from Schoening
