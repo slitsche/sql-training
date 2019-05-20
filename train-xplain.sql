@@ -1,3 +1,23 @@
+\timing on
+
+select name, setting, unit
+  from pg_settings
+ where name like '%page_cost';
+
+explain select * from orders;
+
+explain (buffers, analyze) select * from orders where orderid = 42;
+
+\d pg_class
+
+select relname, relpages, reltuples, relkind
+  from pg_class
+ where oid = 'public.orders'::regclass;
+
+
+
+\d+ customers
+
 explain
 select * from orders
 where customerid in (
@@ -13,10 +33,6 @@ select * from orders
 where customerid in (
    select customerid from customers where state = 'AZ')
  order by orderid;
-
-\d pg_class
-
-select relname, relpages, reltuples, relkind from pg_class where oid = 'public.orders'::regclass;
 
 
 SELECT am.amname AS index_method,
@@ -99,7 +115,7 @@ create table tdoublet (
     (3,4)
 ) as x;
 
-explain analyze
+explain (analyze on, costs off)
 select a,b
   from tdoublet
  where a in (
@@ -109,9 +125,15 @@ select a,b
         having count(1) > 1);
 
 --explain (analyze, buffers, verbose)
-explain (costs off)
+explain (analyze on, costs off)
 select a,b from (
 select a,b,
        count(1) over (partition by a range current row) as c
   from tdoublet) as x
  where c = 2;
+
+
+
+-----------------------------
+
+\dt

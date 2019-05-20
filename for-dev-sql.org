@@ -304,3 +304,88 @@ Null value bitmap (see valentines slide)
 postgres only
 ** Without index, order of columns in group by matters
 blog post from Schoening
+** TODO Show example to analyze query with bind parameter
+** TODO mention depesz website
+* story
+** why slow?
+*** story from Amsterdam logistics
+*** reduce I/O
+*** split query into several
+*** how to see the patterns
+is the goal of this training
+** what is used to build execution plan?
+*** what is an executionp plan
+**** introduce explain command
+*** SQL
+*** Statistics
+** Why statistics and how are they used?
+*** if there are different indexes which one to use?
+#+BEGIN_SRC sql
+select *
+  from a
+ where x = 1
+   and y = 2
+#+END_SRC
+*** distribution of blocks
+**** Are we on the same page?
+***** organize the file
+***** access not rows, but blocks
+***** manage block/pages in shared memory
+***** TODO Tafelbild
+**** read a sequence of blocks
+**** read scattered blocks
+**** Cost model
+*** cost model
+** analyze Index usage
+we now want to use the gained information to discuss index access methods
+*** Back to the example
+#+BEGIN_SRC sql
+select *
+  from a
+ where x = 1
+   and y = 2
+#+END_SRC
+- Check the excution plan
+- discuss index access
+*** How does it help?
+given that we found the best index, how does it help?
+the execution plan is longer: we now have a longer execution plan.
+One step added, but it is cheaper.
+
+Access method (scatter read) is more expensive.
+*** Index tree
+*** Index double linked list
+*** how to leverage these features
+**** operators in where
+depending on the type of the index
+**** group by
+**** order by
+** Example Reduce I/O
+**** Window Fn example
+with out cost in order to less distraction
+#+BEGIN_SRC sql
+explain (costs off)
+select a,b from (
+    select a,b,
+        count(1) over (partition by a range current row) as c
+    from tdoublet) as x
+ where c = 2;
+#+END_SRC
+**** reduce the steps
+**** reduce I/O
+this we can derive simply from the fact that one seq scan in the plan less than
+previously.
+
+** analyze more complex example
+*** data distribution
+**** lookup of single row
+**** get small dataset from one table
+**** get small dataset based on parameter in other table?
+**** do you merge big data sets
+**** get big dataset?
+**** Cost model
+*** filter on result of other query
+doublet and 2 col PK
+**** TODO what about join?
+can we join instead of subquery
+** real world example eventlog
