@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>19-03-2019</p>
+            <p>21-05-2019</p>
           </section>
             <section data-transition="slide">
               <section>
@@ -158,8 +158,8 @@ bookshelf.jpg-->
   country,
   count(distinct o.customerid) AS active,
   count(distinct c.customerid)
-     <span class="emphasize">FILTER</span> (
-     <span class="emphasize">WHERE</span> o.orderid is null) AS inactive
+     <span class="emphasize">FILTER</span>
+      (<span class="emphasize">WHERE</span> o.orderid is null) AS inactive
    FROM customers c
    LEFT JOIN orders o
           on o.customerid = c.customerid
@@ -330,7 +330,8 @@ select a, b, count(*)
                 <pre><code data-noescape >
 select a,b,count(*)
   from s
- group by <span class="emphasize">grouping sets</span>(
+ group by <span class="emphasize">grouping sets</span>
+       (
           (a,b),
           ()
        );
@@ -357,8 +358,12 @@ select a,b,count(*)
                 <pre><code data-noescape >
 select a,b,count(*)
   from s
- group by grouping sets(
-          (a,b), a, b, ()
+ group by grouping sets
+       (
+          (a,b),
+          a,
+          b,
+          ()
        );
                   </code></pre>
                   <pre><code>
@@ -447,7 +452,7 @@ SELECT
   SELECT country,
          count(*)
     FROM customers
-GROUP BY country
+   GROUP BY country
   <span class="emphasize">HAVING count(*) > 1000</span>;
                   </code></pre>
                 <pre><code data-noescape >
@@ -537,8 +542,7 @@ https://www.flickr.com/photos/islandjoe/ window-triple.jpg
                 <div>
                   <h3>What is a window function?</h3>
                   <ul>
-                    <li>calculation across set of rows</li>
-                    <li>aggregate function</li>
+                    <li>aggregate function across set of rows</li>
                     <li>without grouping rows</li>
                     <li>rows retain identity</li>
                   </ul>
@@ -594,6 +598,18 @@ select a, <span class="emphasize">sum(a) over()</span> from c;
               </section>
 
               <section>
+                <p>List the first 10 customerids and the total count of customers</p>
+                <div class="fragment sli">
+                  <pre><code data-noescape>
+select customerid, count(*) over()
+  from customers
+ order by customerid
+ limit 10;
+                  </code></pre>
+                </div>
+              </section>
+
+              <section>
                 <h3>Declare Windows</h3>
                 <div class="sli">
                   <pre><code data-noescape>
@@ -615,18 +631,6 @@ select a, sum(a) over <span class="emphasize">w</span>,
   8 │  55 │    10
   9 │  55 │    10
  10 │  55 │    10
-                  </code></pre>
-                </div>
-              </section>
-
-              <section>
-                <p>List the first 10 customerid and the total count of customers</p>
-                <div class="fragment sli">
-                  <pre><code data-noescape>
-select customerid, count(*) over()
-  from customers
- order by customerid
- limit 10;
                   </code></pre>
                 </div>
               </section>
