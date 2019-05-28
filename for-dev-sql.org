@@ -355,7 +355,7 @@ One step added, but it is cheaper.
 Access method (scatter read) is more expensive.
 *** Index tree
 *** Index double linked list
-*** how to leverage these features
+** how to leverage these features
 **** operators in where
 depending on the type of the index
 **** group by

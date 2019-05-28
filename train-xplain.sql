@@ -4,19 +4,81 @@ select name, setting, unit
   from pg_settings
  where name like '%page_cost';
 
-explain select * from orders;
+explain select * from customers;
 
-explain (buffers, analyze) select * from orders where orderid = 42;
+explain select lastname from customers where country = 'South Africa';
 
-\d pg_class
+explain (analyze)
+select country from customers where country = 'South Africa' ;
+
+explain (analyze)
+select country from customers where country < 'Chile' ;
+
+explain (analyze, buffers)
+select lastname from customers order by country desc;
+
+explain-- (analyze, buffers)
+select count(*) from customers where country = 'South Africa' group by country;
+
+explain-- (analyze, buffers)
+select country, count(*) from customers group by country;
 
 select relname, relpages, reltuples, relkind
   from pg_class
- where oid = 'public.orders'::regclass;
+ where oid = 'public.customers'::regclass;
 
+select relname, relpages, reltuples, relkind
+  from pg_class
+ where oid = 'public.zip_slow'::regclass;
 
+create index customer_country_idx on customers (country);
+
+explain (analyze)
+ select count(*) from customers
+  where country = 'South Africa' ;
+
+explain (analyze, buffers)
+select lastname from customers where username = 'user1';
+
+drop index customer_country_idx;
+
+select distinct country from customers;
 
 \d+ customers
+
+select zip, count(*) from customers group by zip order by 2 desc limit 10;
+
+create index zip_slow on customers (country, zip);
+
+create index zip_fast on customers (zip, country);
+
+drop index zip_fast;
+
+explain (analyze, buffers, verbose)
+ select lastname from customers where zip = 36223;
+
+drop index orders_orderdate_idx;
+
+create index orders_orderdate_idx on orders (orderdate);
+
+--explain (analyze, buffers)
+ select count(*) from orders where extract('month' from orderdate) = 1;
+
+--explain (analyze, buffers)
+ select count(*) from orders where orderdate >= '2004-01-01' and orderdate < '2004-02-01';
+
+\d orders
+
+---------------------- pipelined group by  ----------------------
+select name, setting from pg_settings where category = 'Query Tuning / Planner Method Configuration';
+
+set enable_bitmapscan=on;
+
+explain analyze
+select lastname, firstname, city
+  from customers
+ where lastname > 'Z'
+ order by firstname desc;
 
 explain
 select * from orders
@@ -135,5 +197,17 @@ select a,b,
 
 
 -----------------------------
+/*
+Multi-column index use in an setup with multiple rows per key
+*/
 
-\dt
+\d sli_stat_testdata
+
+create index slow_index on sli_stat_testdata (log1_fewval, log2_fewval);
+
+create index fast_index on sli_stat_testdata (log2_fewval, log1_fewval);
+
+drop index fast_index;
+
+explain (analyze, verbose, buffers)
+select id from sli_stat_testdata where log2_fewval = 0;

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+        <head>
+                <link rel="stylesheet" href="css/reveal.css">
+                <link rel="stylesheet" href="css/theme/beige.css">
+                <link rel="stylesheet" href="css/sli.css">
+                <meta charset="utf-8"/>
+<script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+    </head>
+        <body>
+    <div class="reveal">
+        <div class="slides">
+
+          <section>
+            <h1>SQL Xplained</h1>
+            <p>Stefan Litsche</p>
+            <p>19-03-2019</p>
+            <aside class="notes">
+              <ul>
+                <li>Why are queries slow</li>
+                <li>Logistics project: collect on performance</li>
+                <li>Reduce I/O</li>
+                <li>applicable to other RDBMS, details differ</li>
+                <li>block storage engine, which change data in place</li>
+                <li>contrast to LSM Trees</li>
+              </ul>
+            </aside>
+          </section>
+
+          <section data-transition="slide">
+            <section>
+                <h2>Training Database</h2>
+                <ul>
+                <li>host: sqltraining.flux.staging.db.zalan.do</li>
+                <li>dbname: training</li>
+                <li>username: training</li>
+                <li>password: Training</li>
+                </ul>
+            </section>
+
+          </section>
+
+          <section data-transition="slide">
+            <section>
+              <h2>Execution plans</h2>
+                <aside class="notes">
+                  <ul>
+                    <li>translate SQL query into algorithm</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Explain command</h3>
+                <div class="">
+                  <pre><code data-noescape>
+<span class="emphasize">explain</span> select * from customers;
+
+</code></pre>
+                  <pre><code>
+                           QUERY PLAN
+-----------------------------------------------------------------
+ Seq Scan on customers  (cost=0.00..688.00 rows=20000 width=268)
+(1 row)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Phases of Execution</h3>
+                <div class="">
+                  <ul>
+                    <li>Parse</li>
+                    <li>Analyze</li>
+                    <li>Plan</li>
+                    <li>Execute</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Input to Planning</h3>
+                <div class="">
+                  <ul>
+                    <li>Object Statistics</li>
+                    <li>Cardinality Model</li>
+                    <li>Cost Model</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Cost Model</h3>
+                <div class="">
+                  <ul>
+                    <li>seq_page_cost</li>
+                    <li>random_page_cost</li>
+                    <li>cpu_tuple_cost</li>
+                    <li>cpu_index_tuple_cost</li>
+                    <li>cpu_operator_cost</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Cardinality Model</h3>
+                <div class="">
+                  <ul>
+                    <li>Size of intermediate results</li>
+                    <li>Probalistic approach</li>
+                    <li>Use of objects statistics</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Object Statistic</h3>
+                <div class="">
+                  <ul>
+                    <li>Describes distribution of data</li>
+                    <li>Gathered in background</li>
+                    <li>Based on sample</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Selectivity</h3>
+                <div class="">
+                  <p><code>Column = a</code></p>
+                  <p><code>S(a) = 1 / (number of keys in column)</code></p>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>select the best index if multiple available</li>
+                  </ul>
+                </aside>
+            </section>
+
+          </section>
+
+          <section data-transition="slide">
+
+            <section>
+              <h2>Explain explained</h2>
+                <aside class="notes">
+                  <ul>
+                    <li>translate SQL query into algorithm</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Explain again</h3>
+                <div class="">
+                  <pre><code data-noescape>
+<span class="emphasize">explain</span> select * from customers;
+
+</code></pre>
+                  <pre><code>
+                           QUERY PLAN
+-----------------------------------------------------------------
+ Seq Scan on customers  (cost=0.00..688.00 rows=20000 width=268)
+(1 row)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>estimated Rows <b>emitted</b></li>
+                    <li><b>Network</b> is NOT included</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Nodes with extra info</h3>
+                <div class="">
+                  <pre><code data-noescape>
+explain
+ select lastname from customers
+  <span class="emphasize">where country = 'South Africa'</span>;
+
+</code></pre>
+                  <pre><code>
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on customers  (cost=0.00..738.00 rows=935 width=11)
+   Filter: ((country)::text = 'South Africa'::text)
+(2 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>estimated Rows <b>emitted</b></li>
+                    <li><b>Network</b> is NOT included</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Parent nodes have childs</h3>
+                <div class="">
+                  <pre><code data-noescape>
+explain
+ select count(*) from customers
+  where country = 'South Africa' group by country;
+</code></pre>
+                  <pre><code>
+                            QUERY PLAN
+-------------------------------------------------------------------
+ GroupAggregate  (cost=0.00..742.78 rows=11 width=13)
+   Group Key: country
+   ->  Seq Scan on customers  (cost=0.00..738.00 rows=935 width=5)
+         Filter: ((country)::text = 'South Africa'::text)
+(4 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Cost of CHILD nodes included</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>More Infos from explain</h3>
+                <div class="">
+                  <pre><code data-noescape>
+explain <span class="emphasize">(analyze)</span>
+ select country from customers
+  where country = 'South Africa' ;
+</code></pre>
+                  <pre><code>
+ Seq Scan on customers
+     (cost=0.00..738.00 <span class="emphasize">rows=935</span> width=5)
+     (actual time=3.180..4.754 rows=935 loops=1)
+   Filter: ((country)::text = 'South Africa'::text)
+   <span class="emphasize">Rows Removed by Filter: 19065</span>
+ Planning time: 0.156 ms
+ Execution time: 4.826 ms
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Transactions</li>
+                    <li>Beware of explain analyze and update</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Index usage</h3>
+                <div class="">
+                  <pre><code data-noescape>
+explain
+ select lastname from customers where username = 'user1';
+
+</code></pre>
+                  <pre><code>
+ <span class="emphasize">Index Scan</span> using customers_username_idx on customers
+       (cost=0.29..8.30 rows=1 width=11)
+   Index Cond: ((username)::text = 'user1'::text)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>NEXT: was does "Index Scan" mean?</li>
+                  </ul>
+                </aside>
+            </section>
+
+          </section>
+
+          <section data-transition="slide">
+            <section>
+                <h2>Anatomy</h2>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Pages and Blocks</h3>
+                  <ul>
+                    <li>Block basic entity for data operation</li>
+                    <li>Block holds metadata</li>
+                    <li>Read into shared memory</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Data: rows and index infos</li>
+                    <li>Default 8 kB</li>
+                    <li>For tables and indexes</li>
+                    <li>Mention rowid as physical address</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>B-Tree Index</h3>
+                  <ul>
+                    <li>Balanced</li>
+                    <li>Ordered</li>
+                    <li>Leaf nodes double linked list</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Search Tree</li>
+                    <li>Start drawing a tree with ids</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Index scan</h3>
+                <div class="">
+                  <pre><code data-noescape>
+CREATE UNIQUE INDEX on customers (<span class="emphasize">username</span>);
+
+explain (analyze, buffers)
+select lastname from customers where <span class="emphasize">username =</span> 'user1';
+
+</code></pre>
+                  <pre><code>
+ Index Scan using customers_username_idx on customers
+       (cost=0.29..8.30 rows=1 width=11)
+       (actual time=3.173..3.185 rows=1 loops=1)
+   Index Cond: ((username)::text = 'user1'::text)
+   Buffers: shared <span class="emphasize">hit=1 read=2</span>
+ Planning time: 0.170 ms
+ Execution time: 3.263 ms
+(5 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li><b>Always</b> includes table access</li>
+                    <li>Proceed with the drawing</li>
+                    <li>Compare block count</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Index scan</h3>
+                  <ul>
+                    <li><b>Always</b> includes table access</li>
+                    <li>Random block access</li>
+                    <li>Reduced I/O</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Start drawing a tree with ids</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Excercise: What indicates that this query could be made more efficient?</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+ select lastname from customers where zip = 36223;
+
+</code></pre>
+                  <pre class="fragment sli"><code>
+ Index Scan using zip_slow on customers
+       (cost=0.29..435.79 rows=4 width=11)
+       (actual time=5.124..7.063 <span class="emphasize">rows=4</span> loops=1)
+   Index Cond: (zip = 36223)
+   Buffers: shared <span class="emphasize">hit=4 read=67</span>
+ Planning time: 0.218 ms
+ Execution time: 7.122 ms
+(5 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Why do we have so many I/O?</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Summary</h3>
+                  <ul>
+                    <li>Use explain to spot wasted I/O</li>
+                    <li>Shorter plans tend to be faster</li>
+                    <li>Index scales with growth of rowcount</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+          </section>
+
+          <section data-transition="slide">
+            <section>
+              <h2>Leverage indexes</h2>
+            </section>
+
+            <section>
+              <h3>Index types</h3>
+                  <ul>
+                    <li>Btree</li>
+                    <li>Gin</li>
+                    <li>Gist</li>
+                    <li>Hash</li>
+                    <li>Brin</li>
+                  </ul>
+            </section>
+
+            <section>
+              <h3>Choose an index</h3>
+                  <ul>
+                    <li>column</li>
+                    <li>operator</li>
+                  </ul>
+            </section>
+
+            <section>
+              <h3>Operators for Btree</h3>
+                  <ul>
+                    <li>=</li>
+                    <li>>=</li>
+                    <li><=</li>
+                    <li>></li>
+                    <li><</li>
+                    <li>BETWEEN</li>
+                    <li>IN</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Hash Index</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Question: Is the following index appropriate for the query?</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+CREATE INDEX orders_orderdate_idx ON orders (orderdate);
+
+SELECT count(*) FROM orders
+ WHERE extract('month' from orderdate) = 1;
+
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+SELECT count(*) FROM orders
+ WHERE orderdate >= '2004-01-01' AND orderdate < '2004-02-01';
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Greater and smaller than operators</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h3>Ordering data</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+explain
+ select lastname from customers order by country desc;
+                  </code></pre>
+                  <pre><code>
+ Sort  (cost=2116.77..2166.77 rows=20000 width=16)
+       (actual time=34.178..36.247 rows=20000 loops=1)
+   Sort Key: country DESC
+   Sort Method: external merge  Disk: 520kB
+   Buffers: shared hit=488, temp read=65 <span class="emphasize">written=65</span>
+   ->  Seq Scan on customers
+           (cost=0.00..688.00 rows=20000 width=16)
+           (actual time=0.024..5.214 rows=20000 loops=1)
+         Buffers: shared hit=488
+ Planning time: 0.181 ms
+ Execution time: 37.664 ms
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>SORT is a new Node type in explain</li>
+                    <li>consider work_mem</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h3>Ordering data using index</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+create index customer_country_idx on customers (country);
+
+explain
+ select lastname from customers order by country desc;
+
+                  </code></pre>
+                  <pre><code>
+ Index Scan Backward using customer_country_idx on customers
+       (cost=0.29..1938.21 rows=20000 width=16)
+       (actual time=0.050..21.823 rows=20000 loops=1)
+   Buffers: shared hit=2720 read=58
+ Planning time: 0.468 ms
+ Execution time: 26.041 ms
+(4 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Greater and smaller than operators</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h3>Partial Index</h3>
+                  <ul>
+                    <li>Access vs Filter</li>
+                  </ul>
+            </section>
+
+          </section>
+          </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.load.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+      //enables simple reload during development
+      history: true,
+      viewDistance: 3,
+      transition: 'fade',
+      /* disable blinking cursors */
+      controlsTutorial: false,
+      //slideNumber: true,
+      dependencies: [
+      { src: 'plugin/notes/notes.js', async: true },
+      ]});
+    </script>
+</body>
+</html>
