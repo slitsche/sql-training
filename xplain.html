@@ -394,7 +394,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
             </section>
 
             <section>
-                <p>Excercise: What indicates that this query could be made more efficient?</p>
+                <p>Excercise: What in explain output indicates that this query could be made more efficient?</p>
                 <div class="">
                   <pre class=><code data-noescape>
  select lastname from customers where zip = 36223;
@@ -423,11 +423,14 @@ select lastname from customers where <span class="emphasize">username =</span> '
                 <h3>Summary</h3>
                   <ul>
                     <li>Use explain to spot wasted I/O</li>
-                    <li>Shorter plans tend to be faster</li>
                     <li>Index scales with growth of rowcount</li>
+                    <li>Cost of maintenance</li>
                   </ul>
                 <aside class="notes">
                   <ul>
+                    <li>Shorter plans tend to be faster</li>
+                    <li>Writes are faster with more indexes</li>
+                    <li>You can have too many indexes</li>
                   </ul>
                 </aside>
             </section>
@@ -477,7 +480,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
             </section>
 
             <section>
-                <p>Question: Is the following index appropriate for the query?</p>
+                <p>Is the following index appropriate for the query?</p>
                 <div class="">
                   <pre class=><code data-noescape>
 CREATE INDEX orders_orderdate_idx ON orders (orderdate);
@@ -495,6 +498,62 @@ SELECT count(*) FROM orders
                 <aside class="notes">
                   <ul>
                     <li>Greater and smaller than operators</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Slow Index?</h3>
+                <div class="">
+                  <pre><code data-noescape>
+CREATE INDEX zip_slow ON customers (country, zip);
+
+select lastname from customers where zip = 36223;
+
+</code></pre>
+                  <pre><code>
+ Index Scan using zip_slow on customers
+       (cost=0.29..435.79 rows=4 width=11)
+       (actual time=5.124..7.063 <span class="emphasize">rows=4</span> loops=1)
+   Index Cond: (zip = 36223)
+   Buffers: shared <span class="emphasize">hit=4 read=67</span>
+ Planning time: 0.218 ms
+ Execution time: 7.122 ms
+(5 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Access predicate and Filter on Index</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Better Version</h3>
+                <div class="">
+                  <pre><code data-noescape>
+CREATE INDEX zip_fast ON customers (<span class="emphasize">zip, country</span>);
+
+select lastname from customers where zip = 36223;
+
+</code></pre>
+                  <pre><code>
+ Index Scan using zip_fast on customers
+       (cost=0.29..17.72 rows=4 width=11)
+       (actual time=0.068..0.078 rows=4 loops=1)
+   Index Cond: (zip = 36223)
+   Buffers: shared hit=4 read=2
+ Planning time: 0.434 ms
+ Execution time: 0.115 ms
+(5 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Multicolumn for first or first and second!</li>
                   </ul>
                 </aside>
             </section>
@@ -539,7 +598,7 @@ explain
 
                   </code></pre>
                   <pre><code>
- Index Scan Backward using customer_country_idx on customers
+ <span class="emphasize">Index Scan Backward</span> using customer_country_idx on customers
        (cost=0.29..1938.21 rows=20000 width=16)
        (actual time=0.050..21.823 rows=20000 loops=1)
    Buffers: shared hit=2720 read=58
@@ -551,16 +610,135 @@ explain
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>Greater and smaller than operators</li>
+                    <li>double linked list</li>
                   </ul>
                 </aside>
             </section>
 
             <section>
               <h3>Partial Index</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+CREATE INDEX ON customers (customerid) WHERE status = 'NEW';
+                  </code></pre>
+                </div>
+                <aside class="notes">
                   <ul>
-                    <li>Access vs Filter</li>
+                    <li>Specific use case</li>
+                    <li>beware of sample size</li>
+                    <li>Less blocks per index</li>
                   </ul>
+                </aside>
+            </section>
+
+          </section>
+
+
+          <section data-transition="slide">
+            <section>
+              <h2>Trouble shooting</h2>
+                  <ul>
+                    <li>Expected index is used?</li>
+                    <li>Too many rows?</li>
+                    <li>Too many buffers?</li>
+                    <li>Redundant predicates?</li>
+                    <li>Difference estimated and real rows?</li>
+                    <li>Noisy neighbours?</li>
+                  </ul>
+            </section>
+
+            <section>
+                <p>Excercise: What is the expensive part in the query?</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+SELECT * FROM orders o
+ WHERE customerid  IN (
+    SELECT customerid FROM customers c
+     WHERE o.customerid = c.customerid AND state = 'AZ');
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+ Seq Scan on orders o
+     (cost=0.00..51835.00 rows=6000 width=30)
+     (actual time=1.510..57.035 rows=106 loops=1)
+   Filter: (SubPlan 1)
+   Rows Removed by Filter: 11894
+   SubPlan 1
+     ->  Index Scan using customers_pkey on customers c
+               (cost=0.29..8.31 rows=1 width=4)
+               (actual time=0.004..0.004 rows=0 loops=12000)
+           Index Cond: (o.customerid = customerid)
+           Filter: ((state)::text = 'AZ'::text)
+           Rows Removed by Filter: 1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Why do we have so many I/O?</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Excercise: Finding Doublets</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+explain (costs off)
+select lastname from customers
+ where lastname in (
+       select lastname
+         from customers
+        group by lastname
+        having count(1) > 1);
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+ Hash Join
+   Hash Cond: ((customers.lastname)::text = (customers_1.lastname)::text)
+   ->  Seq Scan on customers
+   ->  Hash
+         ->  GroupAggregate
+               Group Key: customers_1.lastname
+               Filter: (count(1) > 1)
+               ->  Sort
+                     Sort Key: customers_1.lastname
+                     ->  Seq Scan on customers customers_1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Why do we have so many I/O?</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Single table access</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+explain (costs off)
+with cand as (
+select lastname,
+       count(1) over
+          (partition by lastname range current row) as c
+  from customers)
+select lastname from cand
+ where c > 1;
+                  </code></pre>
+                  <pre><code>
+ CTE Scan on cand
+   Filter: (c > 1)
+   CTE cand
+     ->  WindowAgg
+           ->  Sort
+                 Sort Key: customers.lastname
+                 ->  Seq Scan on customers
+(7 rows)
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Mind the memory usage</li>
+                  </ul>
+                </aside>
             </section>
 
           </section>
@@ -576,7 +754,7 @@ explain
       transition: 'fade',
       /* disable blinking cursors */
       controlsTutorial: false,
-      //slideNumber: true,
+      slideNumber: false,
       dependencies: [
       { src: 'plugin/notes/notes.js', async: true },
       ]});
