@@ -29,7 +29,7 @@ select relname, relpages, reltuples, relkind
 
 select relname, relpages, reltuples, relkind
   from pg_class
- where oid = 'public.zip_slow'::regclass;
+ where oid = 'public.customer_country_idx'::regclass;
 
 create index customer_country_idx on customers (country);
 
@@ -54,7 +54,7 @@ create index zip_fast on customers (zip, country);
 
 drop index zip_fast;
 
-explain (analyze, buffers, verbose)
+explain (analyze, buffers)
  select lastname from customers where zip = 36223;
 
 drop index orders_orderdate_idx;
@@ -80,17 +80,29 @@ select lastname, firstname, city
  where lastname > 'Z'
  order by firstname desc;
 
-explain
-select * from orders
-where customerid in (
-   select customerid from customers where state = 'AZ');
-
-explain
+explain analyze
 select * from orders o
 where customerid  in (
    select customerid from customers c where o.customerid = c.customerid and state = 'AZ');
 
-explain
+explain analyze
+select * from orders o
+where exists (
+   select customerid from customers c where o.customerid = c.customerid and state = 'AZ');
+
+explain analyze
+select * from orders
+where customerid in (
+   select customerid from customers where state = 'AZ');
+
+
+explain analyze
+select o.*
+  from orders AS o
+  natural join customers AS c
+  where state = 'AZ';
+
+explain analyze
 select * from orders
 where customerid in (
    select customerid from customers where state = 'AZ')
@@ -194,7 +206,32 @@ select a,b,
   from tdoublet) as x
  where c = 2;
 
+explain analyze
+with cand as (
+select a,b,
+       count(1) over (partition by a range current row) as c
+  from tdoublet)
+select a, b from cand
+ where c > 1;
 
+\d customers
+
+explain (costs off)
+select lastname
+  from customers
+ where lastname in (
+       select lastname
+         from customers
+        group by lastname
+        having count(1) > 1);
+
+explain (costs off)
+with cand as (
+select lastname,
+       count(1) over (partition by lastname range current row) as c
+  from customers)
+select lastname from cand
+ where c > 1;
 
 -----------------------------
 /*
