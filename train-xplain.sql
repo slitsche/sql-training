@@ -248,3 +248,20 @@ drop index fast_index;
 
 explain (analyze, verbose, buffers)
 select id from sli_stat_testdata where log2_fewval = 0;
+
+
+
+---------------------------  Functions
+
+\d orders
+
+
+explain select * from orders where orderdate = '2014-01-01';
+
+explain select * from orders where orderdate = clock_timestamp();
+
+explain select * from orders where orderdate = date_trunc('day',clock_timestamp()) - '1day'::interval;
+
+explain select * from orders where orderdate = date_trunc('day',clock_timestamp() - '1day'::interval);
+
+explain select * from orders where orderdate = 'yesterday';

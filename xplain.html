@@ -625,7 +625,7 @@ CREATE INDEX ON customers (customerid) WHERE status = 'NEW';
                 <aside class="notes">
                   <ul>
                     <li>Specific use case</li>
-                    <li>beware of sample size</li>
+                    <li>beware of sample size for ANALYZE</li>
                     <li>Less blocks per index</li>
                   </ul>
                 </aside>
@@ -635,17 +635,6 @@ CREATE INDEX ON customers (customerid) WHERE status = 'NEW';
 
 
           <section data-transition="slide">
-            <section>
-              <h2>Trouble shooting</h2>
-                  <ul>
-                    <li>Expected index is used?</li>
-                    <li>Too many rows?</li>
-                    <li>Too many buffers?</li>
-                    <li>Redundant predicates?</li>
-                    <li>Difference estimated and real rows?</li>
-                    <li>Noisy neighbours?</li>
-                  </ul>
-            </section>
 
             <section>
                 <p>Excercise: What is the expensive part in the query?</p>
@@ -683,29 +672,29 @@ SELECT * FROM orders o
                 <div class="">
                   <pre class=><code data-noescape>
 explain (costs off)
-select lastname from customers
- where lastname in (
-       select lastname
-         from customers
-        group by lastname
-        having count(1) > 1);
+ select lastname from customers
+  where lastname in (
+        select lastname
+          from customers
+         group by lastname
+         having count(1) > 1);
                   </code></pre>
                   <pre class="fragment sli"><code>
  Hash Join
    Hash Cond: ((customers.lastname)::text = (customers_1.lastname)::text)
-   ->  Seq Scan on customers
+   ->  <span class="emphasize">Seq Scan on customers</span>
    ->  Hash
          ->  GroupAggregate
                Group Key: customers_1.lastname
                Filter: (count(1) > 1)
                ->  Sort
                      Sort Key: customers_1.lastname
-                     ->  Seq Scan on customers customers_1
+                     ->  <span class="emphasize">Seq Scan on customers customers_1</span>
                   </code></pre>
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>Why do we have so many I/O?</li>
+                    <li>What could be done to improve that query?</li>
                   </ul>
                 </aside>
             </section>
@@ -741,6 +730,73 @@ select lastname from cand
                 </aside>
             </section>
 
+            <section>
+                <p>Does this query use the index?</p>
+                <div class="">
+                  <pre><code data-noescape>
+CREATE INDEX ON orders (orderdate);
+
+EXPLAIN
+ SELECT * FROM orders
+  WHERE
+  orderdate = date_trunc('day',
+                          clock_timestamp()-'1day'::interval);
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+ Seq Scan on orders  (cost=0.00..340.00 rows=33 width=30)
+   Filter: (orderdate = date_trunc('day'::text, (clock_timestamp() - '1 day'::interval)))
+(2 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Stable vs. volatile functions</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Use the index with literal</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+EXPLAIN
+ SELECT * FROM orders
+  WHERE orderdate = 'yesterday';
+                  </code></pre>
+                  <pre><code>
+ Index Scan using orders_orderdate_idx on orders  (cost=0.29..10.31 rows=32 width=30)
+   Index Cond: (orderdate = '2019-06-17'::date)
+(2 rows)
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Mind the memory usage</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h2>Summary</h2>
+                  <ul>
+                    <li>Expected index is used?</li>
+                    <li>Too many rows removed?</li>
+                    <li>Too many blocks?</li>
+                    <li>Redundant predicates?</li>
+                    <li>Bad estimate?</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Difference estimated and real rows?</li>
+                    <ul>
+                        <li>Redundant predicates?</li>
+                        <li>wrong execution model (correlated subquery)</li>
+                        <li>skewed data</li>
+                    </ul>
+                  </ul>
+                </aside>
+            </section>
           </section>
           </div>
     </div>
