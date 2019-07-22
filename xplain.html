@@ -97,9 +97,9 @@
                 <h3>Input to Planning</h3>
                 <div class="">
                   <ul>
-                    <li>Object Statistics</li>
-                    <li>Cardinality Model</li>
                     <li>Cost Model</li>
+                    <li>Cardinality Model</li>
+                    <li>Object Statistics</li>
                   </ul>
                 </div>
                 <aside class="notes">
@@ -136,6 +136,8 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Beware of functional dependencies</li>
+                    <li>CREATE STATISTICS Since Postgres11</li>
                   </ul>
                 </aside>
             </section>
@@ -224,8 +226,7 @@ explain
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>estimated Rows <b>emitted</b></li>
-                    <li><b>Network</b> is NOT included</li>
+                    <li>Execution nodes can have extra info</li>
                   </ul>
                 </aside>
             </section>
@@ -251,6 +252,7 @@ explain
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Indicated by arrow</li>
                     <li>Cost of CHILD nodes included</li>
                   </ul>
                 </aside>
@@ -325,9 +327,9 @@ explain
                   </ul>
                 <aside class="notes">
                   <ul>
-                    <li>Data: rows and index infos</li>
                     <li>Default 8 kB</li>
                     <li>For tables and indexes</li>
+                    <li>Every I/O operation</li>
                     <li>Mention rowid as physical address</li>
                   </ul>
                 </aside>
@@ -372,6 +374,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Mention buffers</li>
                     <li><b>Always</b> includes table access</li>
                     <li>Proceed with the drawing</li>
                     <li>Compare block count</li>
@@ -394,7 +397,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
             </section>
 
             <section>
-                <p>Excercise: What in explain output indicates that this query could be made more efficient?</p>
+                <p>Exercise: How many blocks do we process in this query?</p>
                 <div class="">
                   <pre class=><code data-noescape>
  select lastname from customers where zip = 36223;
@@ -414,7 +417,8 @@ select lastname from customers where <span class="emphasize">username =</span> '
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>Why do we have so many I/O?</li>
+                    <li>What in explain output indicates that this query could be made more efficient?</li>
+                    <li>Next: Why do we have so many I/O?</li>
                   </ul>
                 </aside>
             </section>
@@ -451,6 +455,13 @@ select lastname from customers where <span class="emphasize">username =</span> '
                     <li>Hash</li>
                     <li>Brin</li>
                   </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>You can have too many indexes</li>
+                    <li>Check out Postgres extensions</li>
+                    <li>Bloomfilter or hypothetical indexes available</li>
+                  </ul>
+                </aside>
             </section>
 
             <section>
@@ -480,7 +491,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
             </section>
 
             <section>
-                <p>Is the following index appropriate for the query?</p>
+                <p>Is the index used by the query?</p>
                 <div class="">
                   <pre class=><code data-noescape>
 CREATE INDEX orders_orderdate_idx ON orders (orderdate);
@@ -663,12 +674,13 @@ SELECT * FROM orders o
                 <aside class="notes">
                   <ul>
                     <li>Why do we have so many I/O?</li>
+                    <li>Correlated subquery</li>
                   </ul>
                 </aside>
             </section>
 
             <section>
-                <p>Excercise: Finding Doublets</p>
+                <p>Excercise: Improve Finding Doublets</p>
                 <div class="">
                   <pre class=><code data-noescape>
 explain (costs off)
