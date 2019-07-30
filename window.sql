@@ -165,6 +165,11 @@ order by int4(a>=3), 3;
 select a, a % 2, sum(a) over(partition by (a < 3) order by a) 
 from d order by a;
 
+select customerid,  country, count(*) over(partition by country)
+  from customers
+ order by customerid
+ limit 10;
+
 SELECT customerid, country, netamount,
        --count(*)       OVER (cty),
        sum(netamount) over custcty,
@@ -266,6 +271,11 @@ select a,b,count(*)
   from s
  group by a,b
  order by a,b;
+
+select a, count(*)
+  from s
+ group by rollup(a)
+ order by a;
 
 select a,b,count(*)
   from s

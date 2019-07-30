@@ -23,14 +23,26 @@
             <p>22-07-2019</p>
             <aside class="notes">
               <ul>
-                <li>Why are queries slow</li>
-                <li>Logistics project: collect on performance</li>
-                <li>Reduce I/O</li>
                 <li>applicable to other RDBMS, details differ</li>
-                <li>block storage engine, which change data in place</li>
-                <li>contrast to LSM Trees</li>
+                <li><b>By the end of the training</b></li>
+                <ul>
+                  <li>how to leverage indexes</li>
+                  <li>spot the issues in SQL queries</li>
+                </ul>
               </ul>
             </aside>
+          </section>
+
+          <section data-transition="slide">
+            <section>
+              <h2>Agenda</h2>
+              <ul>
+                <li>Exectution plan</li>
+                <li>Output of <code>explain</code> command</li>
+                <li>Index Usage</li>
+              </ul>
+            </section>
+
           </section>
 
           <section data-transition="slide">
@@ -47,7 +59,7 @@
                 <h3>Explain command</h3>
                 <div class="">
                   <pre><code data-noescape>
-<span class="emphasize">explain</span> select * from customers;
+<span class="emphasize">EXPLAIN</span> SELECT * FROM customers;
 
 </code></pre>
                   <pre><code>
@@ -153,6 +165,10 @@
                 <aside class="notes">
                   <ul>
                     <li>select the best index if multiple available</li>
+                    <li>it depends on the value!! </li>
+                    <li>Discuss <b>rare</b> and <b>frequent</b> value
+                      example</li>
+                    <li>Compare Buffer access</li>
                   </ul>
                 </aside>
             </section>
@@ -174,7 +190,7 @@
                 <h3>Explain again</h3>
                 <div class="">
                   <pre><code data-noescape>
-<span class="emphasize">explain</span> select * from customers;
+<span class="emphasize">EXPLAIN</span> SELECT * FROM customers;
 
 </code></pre>
                   <pre><code>
@@ -197,9 +213,9 @@
                 <h3>Nodes with extra info</h3>
                 <div class="">
                   <pre><code data-noescape>
-explain
- select lastname from customers
-  <span class="emphasize">where country = 'South Africa'</span>;
+EXPLAIN
+ SELECT lastname FROM customers
+  <span class="emphasize">WHERE country = 'South Africa'</span>;
 
 </code></pre>
                   <pre><code>
@@ -222,9 +238,9 @@ explain
                 <h3>Parent nodes have childs</h3>
                 <div class="">
                   <pre><code data-noescape>
-explain
- select count(*) from customers
-  where country = 'South Africa' group by country;
+EXPLAIN
+ SELECT count(*) FROM customers
+  WHERE country = 'South Africa' GROUP BY country;
 </code></pre>
                   <pre><code>
                             QUERY PLAN
@@ -249,9 +265,9 @@ explain
                 <h3>More Infos from explain</h3>
                 <div class="">
                   <pre><code data-noescape>
-explain <span class="emphasize">(analyze)</span>
- select country from customers
-  where country = 'South Africa' ;
+EXPLAIN <span class="emphasize">(ANALYZE)</span>
+ SELECT country FROM customers
+  WHERE country = 'South Africa' ;
 </code></pre>
                   <pre><code>
  Seq Scan on customers
@@ -276,8 +292,8 @@ explain <span class="emphasize">(analyze)</span>
                 <h3>Index usage</h3>
                 <div class="">
                   <pre><code data-noescape>
-explain
- select lastname from customers where username = 'user1';
+EXPLAIN
+ SELECT lastname FROM customers WHERE username = 'user1';
 
 </code></pre>
                   <pre><code>
@@ -343,8 +359,8 @@ explain
                   <pre><code data-noescape>
 CREATE UNIQUE INDEX on customers (<span class="emphasize">username</span>);
 
-explain (analyze, buffers)
-select lastname from customers where <span class="emphasize">username =</span> 'user1';
+EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
+ SELECT lastname FROM customers WHERE <span class="emphasize">username =</span> 'user1';
 
 </code></pre>
                   <pre><code>
@@ -379,6 +395,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
                 <aside class="notes">
                   <ul>
                     <li>Start drawing a tree with ids</li>
+                    <li>Discuss Scan Leaf nodes</li>
                   </ul>
                 </aside>
             </section>
@@ -387,7 +404,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
                 <p>Exercise: How many blocks do we process in this query?</p>
                 <div class="">
                   <pre class=><code data-noescape>
- select lastname from customers where zip = 36223;
+SELECT lastname FROM customers WHERE zip = 36223;
 
 </code></pre>
                   <pre class="fragment sli"><code>
@@ -472,7 +489,7 @@ select lastname from customers where <span class="emphasize">username =</span> '
                   </ul>
                 <aside class="notes">
                   <ul>
-                    <li>Hash Index</li>
+                    <li>Hash Index for = and IN operator</li>
                   </ul>
                 </aside>
             </section>
@@ -506,7 +523,7 @@ SELECT count(*) FROM orders
                   <pre><code data-noescape>
 CREATE INDEX zip_slow ON customers (country, zip);
 
-select lastname from customers where zip = 36223;
+SELECT lastname FROM customers WHERE zip = 36223;
 
 </code></pre>
                   <pre><code>
@@ -534,7 +551,7 @@ select lastname from customers where zip = 36223;
                   <pre><code data-noescape>
 CREATE INDEX zip_fast ON customers (<span class="emphasize">zip, country</span>);
 
-select lastname from customers where zip = 36223;
+SELECT lastname FROM customers WHERE zip = 36223;
 
 </code></pre>
                   <pre><code>
@@ -560,8 +577,8 @@ select lastname from customers where zip = 36223;
               <h3>Ordering data</h3>
                 <div class="">
                   <pre class=><code data-noescape>
-explain
- select lastname from customers order by country desc;
+EXPLAIN
+ SELECT lastname FROM customers ORDER BY country DESC;
                   </code></pre>
                   <pre><code>
  Sort  (cost=2116.77..2166.77 rows=20000 width=16)
@@ -589,10 +606,10 @@ explain
               <h3>Ordering data using index</h3>
                 <div class="">
                   <pre class=><code data-noescape>
-create index customer_country_idx on customers (country);
+CREATE INDEX customer_country_idx ON customers (country);
 
-explain
- select lastname from customers order by country desc;
+EXPLAIN
+ SELECT lastname FROM customers ORDER BY country DESC;
 
                   </code></pre>
                   <pre><code>
@@ -635,33 +652,56 @@ CREATE INDEX ON customers (customerid) WHERE status = 'NEW';
           <section data-transition="slide">
 
             <section>
-                <p>Exercise: What is the expensive part in the query?</p>
+                <h3>Multiple Tables</h3>
                 <div class="">
                   <pre class=><code data-noescape>
-SELECT * FROM orders o
- WHERE customerid  IN (
-    SELECT customerid FROM customers c
-     WHERE o.customerid = c.customerid AND state = 'AZ');
+SET enable_hashjoin TO false;
+
+EXPLAIN
+SELECT o.*
+  FROM orders AS o
+  NATURAL JOIN customers AS c
+  WHERE state = 'AZ';
                   </code></pre>
-                  <pre class="fragment sli"><code>
- Seq Scan on orders o
-     (cost=0.00..51835.00 rows=6000 width=30)
-     (actual time=1.510..57.035 rows=106 loops=1)
-   Filter: (SubPlan 1)
-   Rows Removed by Filter: 11894
-   SubPlan 1
-     ->  Index Scan using customers_pkey on customers c
-               (cost=0.29..8.31 rows=1 width=4)
-               (actual time=0.004..0.004 rows=0 loops=12000)
-           Index Cond: (o.customerid = customerid)
-           Filter: ((state)::text = 'AZ'::text)
-           Rows Removed by Filter: 1
+                  <pre class=""><code>
+ Nested Loop  (cost=0.29..1309.31 rows=106 width=30)
+   ->  Seq Scan on customers c  (cost=0.00..738.00 rows=177 width=4)
+         Filter: ((state)::text = 'AZ'::text)
+   ->  Index Scan using orders_customerid_orderdate_idx on orders o  (cost=0.29..3.22 rows=1 width=30)
+         Index Cond: (customerid = c.customerid)
+(5 rows)
                   </code></pre>
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>Why do we have so many I/O?</li>
-                    <li>Correlated subquery</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Hash Join</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+SET enable_hashjoin TO true;
+
+EXPLAIN
+SELECT o.*
+  FROM orders AS o
+  NATURAL JOIN customers AS c
+  WHERE state = 'AZ';
+                  </code></pre>
+                  <pre class=""><code>
+ Hash Join  (cost=740.21..991.72 rows=106 width=30)
+   Hash Cond: (o.customerid = c.customerid)
+   ->  Seq Scan on orders o  (cost=0.00..220.00 rows=12000 width=30)
+   ->  Hash  (cost=738.00..738.00 rows=177 width=4)
+         ->  Seq Scan on customers c  (cost=0.00..738.00 rows=177 width=4)
+               Filter: ((state)::text = 'AZ'::text)
+(6 rows)
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
                   </ul>
                 </aside>
             </section>
@@ -670,13 +710,13 @@ SELECT * FROM orders o
                 <p>Exercise: Improve Finding Doublets</p>
                 <div class="">
                   <pre class=><code data-noescape>
-explain (costs off)
- select lastname from customers
-  where lastname in (
-        select lastname
-          from customers
-         group by lastname
-         having count(1) > 1);
+EXPLAIN (costs off)
+ SELECT * FROM customers
+  WHERE lastname IN (
+        SELECT lastname
+          FROM customers
+         GROUP BY lastname
+         HAVING count(1) > 1);
                   </code></pre>
                   <pre class="fragment sli"><code>
  Hash Join
@@ -693,6 +733,7 @@ explain (costs off)
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Discuss Hash Join</li>
                     <li>What could be done to improve that query?</li>
                   </ul>
                 </aside>
@@ -702,14 +743,14 @@ explain (costs off)
                 <p>Single table access</p>
                 <div class="">
                   <pre class=><code data-noescape>
-explain (costs off)
-with cand as (
-select lastname,
-       count(1) over
-          (partition by lastname range current row) as c
-  from customers)
-select lastname from cand
- where c > 1;
+EXPLAIN (costs off)
+WITH cand AS (
+    SELECT lastname,
+        count(1) OVER
+            (PARTITION BY lastname RANGE CURRENT ROW) as c
+    FROM customers)
+SELECT lastname FROM cand
+ WHERE c > 1;
                   </code></pre>
                   <pre><code>
  CTE Scan on cand
@@ -777,6 +818,10 @@ EXPLAIN
             </section>
 
             <section>
+              <p><a href="https://explain.depesz.com/">https://explain.depesz.com/</a></p>
+            </section>
+
+            <section>
               <h2>Summary</h2>
                   <ul>
                     <li>Expected index is used?</li>
@@ -788,6 +833,9 @@ EXPLAIN
                 <aside class="notes">
                   <ul>
                     <li>Difference estimated and real rows?</li>
+                    <li>Why are queries slow</li>
+                    <li>Logistics project: collect on performance</li>
+                    <li>Reduce I/O</li>
                     <ul>
                         <li>Redundant predicates?</li>
                         <li>wrong execution model (correlated subquery)</li>
@@ -800,6 +848,7 @@ EXPLAIN
           </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.load.js"></script>
+    <!--script src="js/head.1.0.3.min.js"></script-->
     <script src="js/reveal.js"></script>
     <script>
       Reveal.initialize({

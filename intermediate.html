@@ -19,7 +19,14 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>21-05-2019</p>
+            <p>23-07-2019</p>
+            <aside class="notes">
+              <p>By the end the training</p>
+              <ul>
+                <li>write analytical queries</li>
+                <li>using aggregate fn with groups and window fn</li>
+              </ul>
+            </aside>
           </section>
             <section data-transition="slide">
               <section>
@@ -486,19 +493,21 @@ SELECT
 
               <section>
                 <p>Exercise: List all weeks with at most 220 orders (per week)
-                  and a netamount of at least 42000 units.</p>
+                  and a netamount of at least 42000 units. <br/>
+                  Hint: <code>date_trunc('week', orderdate)</code></p>
                 <div class="fragment sli">
                 <pre><code data-noescape >
-SELECT date_trunc('week', orderdate),
-       count(*),
-       sum(netamount)
+SELECT
+  date_trunc('week', orderdate) AS week,
+  count(*),
+  sum(netamount)
    FROM orders
   GROUP BY 1
  HAVING count(*) <= 220
     and sum(netamount) >= 42000;
                   </code></pre>
                 <pre><code data-noescape >
-       date_trunc       │ count │   sum
+       week             │ count │   sum
 ────────────────────────┼───────┼──────────
  2004-11-15 00:00:00+00 │   219 │ 44050.54
  2004-05-31 00:00:00+00 │   217 │ 42146.54
@@ -1409,6 +1418,34 @@ window w as (
                     <li></li>
                   </ul>
                 </aside>
+            </section>
+
+            <section>
+              <p>Exercise: List the the first 10 customerids, the country and the
+                count for customers per country. </p>
+                <div class="fragment">
+                  <pre><code data-noescape>
+SELECT customerid,  country, count(*) OVER(PARTITION BY country)
+  FROM customers
+ ORDER BY customerid
+ LIMIT 10;
+                  </code></pre>
+                  <pre><code>
+ customerid | country | count 
+------------+---------+-------
+          1 | US      | 10000
+          2 | US      | 10000
+          3 | US      | 10000
+          4 | US      | 10000
+          5 | US      | 10000
+          6 | US      | 10000
+          7 | US      | 10000
+          8 | US      | 10000
+          9 | US      | 10000
+         10 | US      | 10000
+                  </code></pre>
+                </div>
+                <aside class="notes"></aside>
             </section>
 
             <section>

@@ -15,7 +15,8 @@ explain (analyze)
 select country from customers where country < 'Chile' ;
 
 explain (analyze, buffers)
-select lastname from customers order by country desc;
+
+select lastname from customers order by country desc NULLS first limit 2;
 
 explain-- (analyze, buffers)
 select count(*) from customers where country = 'South Africa' group by country;
@@ -54,7 +55,7 @@ create index zip_fast on customers (zip, country);
 
 drop index zip_fast;
 
-explain (analyze, buffers)
+explain (analyze, buffers, verbose, timing)
  select lastname from customers where zip = 36223;
 
 drop index orders_orderdate_idx;
@@ -90,13 +91,15 @@ select * from orders o
 where exists (
    select customerid from customers c where o.customerid = c.customerid and state = 'AZ');
 
+set enable_hashjoin to false;
+
 explain analyze
 select * from orders
 where customerid in (
    select customerid from customers where state = 'AZ');
 
 
-explain analyze
+explain --(costs off) --analyze
 select o.*
   from orders AS o
   natural join customers AS c
@@ -105,7 +108,7 @@ select o.*
 explain analyze
 select * from orders
 where customerid in (
-   select customerid from customers where state = 'AZ')
+   select custmerid from customers where state = 'AZ')
  order by orderid;
 
 
@@ -115,8 +118,14 @@ SELECT am.amname AS index_method,
        opc.opcdefault AS is_default
     FROM pg_am am, pg_opclass opc
     WHERE opc.opcmethod = am.oid
+      --and opc.opcname = 'range_ops'
+      and am.amname = 'hash'
     ORDER BY index_method, opclass_name;
-    
+
+select * from pg_opclass
+ where opcname = 'text_ops'
+limit 3;
+
 prod_eventlog_db=# explain select * from zel_event.e96001_order_created where "customerNumber" in (select "customerNumber" from zel_event.e60006_return_order_received where "shipmentNumber" = '1041020079573759');
                                                                                         QUERY PLAN                                                                                        
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -126,7 +135,7 @@ prod_eventlog_db=# explain select * from zel_event.e96001_order_created where "c
          ->  Append  (cost=10.90..27.46 rows=2 width=11)
                ->  Index Scan using "e60006_return_order_received_shipmentNumber_idx" on e60006_return_order_received  (cost=10.90..13.50 rows=1 width=11)
                      Index Cond: ("shipmentNumber" = '1041020079573759'::text)
-               ->  Index Scan using "e60006_return_order_received_shipmentNumber_idx" on e60006_return_order_received e60006_return_order_received_1  (cost=11.35..13.96 rows=1 width=11)
+G               ->  Index Scan using "e60006_return_order_received_shipmentNumber_idx" on e60006_return_order_received e60006_return_order_received_1  (cost=11.35..13.96 rows=1 width=11)
                      Index Cond: ("shipmentNumber" = '1041020079573759'::text)
    ->  Append  (cost=11.15..87.37 rows=46 width=93)
          ->  Index Scan using "e96001_order_created_customerNumber_idx" on e96001_order_created  (cost=11.15..15.11 rows=2 width=94)
@@ -294,8 +303,17 @@ EXPLAIN ANALYZE SELECT * FROM t1 WHERE (a = 1) AND (b = 0);
 PREPARE ts1 AS
   SELECT * FROM t1 WHERE (a = $1) AND (b = $2);
 
-explain analyze execute ts1 (1,0);
+explain execute ts1 (1,0);
 
 deallocate ts1;
 
 DROP STATISTICS s1;
+
+
+select name, setting from pg_settings
+ where name like '%enable%';
+
+
+explain select * from t1 where a in (1, 2);
+
+explain select * from t1 where a between 1 and 2;
