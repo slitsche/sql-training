@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>29-07-2019</p>
+            <p>18-09-2019</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -283,6 +283,52 @@ SELECT country,
                     <p>beware: duplicates</p>
                   </aside>
                 </section>
+
+              <section>
+
+                <h3>Aggregate Functions</h3>
+                <div class="sli">
+                <pre><code data-noescape >
+SELECT
+    array_agg(zip)
+  FROM (
+    SELECT zip FROM customers
+     LIMIT 10) AS a;
+                  </code></pre>
+                  <pre><code>
+            array_agg
+---------------------------------
+ {24101,11802,96082,78442,16291}
+(1 row)
+                  </code></pre>
+                  </div>
+                <aside class="notes">
+                  Filter Groups
+                </aside>
+              </section>
+
+              <section>
+
+                <h3>Aggregate Functions with order</h3>
+                <div class="sli">
+                <pre><code data-noescape >
+SELECT
+    array_agg(zip <span class="emphasize">ORDER BY zip</span>)
+  FROM (
+    SELECT zip FROM customers
+     LIMIT 5) AS a;
+                  </code></pre>
+                  <pre><code>
+            array_agg
+---------------------------------
+ {11802,16291,24101,78442,96082}
+(1 row)
+                  </code></pre>
+                  </div>
+                <aside class="notes">
+                  Filter Groups
+                </aside>
+              </section>
             </section>
 
             <section data-transition="slide">
@@ -613,10 +659,10 @@ select a, <span class="emphasize">sum(a) over()</span> from c;
                 <p>List the first 10 customerids and the total count of customers</p>
                 <div class="fragment sli">
                   <pre><code data-noescape>
-select customerid, count(*) over()
-  from customers
- order by customerid
- limit 10;
+SELECT customerid, count(*) OVER()
+  FROM customers
+ ORDER BY customerid
+ LIMIT 10;
                   </code></pre>
                 </div>
               </section>
@@ -1446,7 +1492,9 @@ SELECT customerid,  country, count(*) OVER(PARTITION BY country)
          10 | US      | 10000
                   </code></pre>
                 </div>
-                <aside class="notes"></aside>
+                <aside class="notes">
+                  What happens to the count if we add a WHERE clause?
+                </aside>
             </section>
 
             <section>
