@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Xplained</h1>
             <p>Stefan Litsche</p>
-            <p>30-07-2019</p>
+            <p>24-09-2019</p>
             <aside class="notes">
               <ul>
                 <li>applicable to other RDBMS, details differ</li>
@@ -37,7 +37,7 @@
             <section>
               <h2>Agenda</h2>
               <ul>
-                <li>Exectution plan</li>
+                <li>Execution plan</li>
                 <li>Output of <code>explain</code> command</li>
                 <li>Index Usage</li>
               </ul>
@@ -156,11 +156,11 @@
                 </aside>
             </section>
 
-            <section>
+            <!--section>
                 <h3>Selectivity</h3>
                 <div class="">
                   <p><code>Column = a</code></p>
-                  <p><code>S(a) = 1 / (number of keys in column)</code></p>
+                  <p>Portion of the table containing </p>
                 </div>
                 <aside class="notes">
                   <ul>
@@ -171,7 +171,7 @@
                     <li>Compare Buffer access</li>
                   </ul>
                 </aside>
-            </section>
+            </section-->
 
           </section>
 
@@ -182,6 +182,9 @@
                 <aside class="notes">
                   <ul>
                     <li>translate SQL query into algorithm</li>
+                    <li>for a given query there exists lots of possible plans</li>
+                    <li>explain shows the result of planning</li>
+                    <li>How to interpret the output?</li>
                   </ul>
                 </aside>
             </section>
@@ -240,7 +243,8 @@ EXPLAIN
                   <pre><code data-noescape>
 EXPLAIN
  SELECT count(*) FROM customers
-  WHERE country = 'South Africa' GROUP BY country;
+  WHERE country = 'South Africa'
+  GROUP BY country;
 </code></pre>
                   <pre><code>
                             QUERY PLAN
