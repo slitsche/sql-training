@@ -116,10 +116,12 @@
                     <li>cpu_tuple_cost</li>
                     <li>cpu_index_tuple_cost</li>
                     <li>cpu_operator_cost</li>
+                    <li>effective_cache_size</li>
                   </ul>
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Draw sketch about portions of memory</li>
                   </ul>
                 </aside>
             </section>
@@ -476,8 +478,14 @@ SELECT lastname FROM customers WHERE zip = 36223;
               <h3>Choose an index</h3>
                   <ul>
                     <li>column</li>
-                    <li>operator</li>
+                    <li>used operator matches the supported set</li>
+                    <li>retrieve less 10..15% of rows</li>
                   </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Query should run frequently</li>
+                  </ul>
+                </aside>
             </section>
 
             <section>
@@ -822,7 +830,13 @@ EXPLAIN
             </section>
 
             <section>
-              <p><a href="https://explain.depesz.com/">https://explain.depesz.com/</a></p>
+                <img data-src="img/depesz.png">
+                <p><a href="https://explain.depesz.com/">https://explain.depesz.com/</a></p>
+            </section>
+
+            <section>
+                <img data-src="img/dalibo.png">
+                <p><a href="https://explain.dalibo.com/">https://explain.dalibo.com/</a></p>
             </section>
 
             <section>
