@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>18-09-2019</p>
+            <p>22-10-2019</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -739,6 +739,7 @@ https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYY
                     <ul>
                       <li>Range</li>
                       <li>Rows</li>
+                      <li>Groups</li>
                     </ul>
                   </li>
                 </ul>
@@ -828,6 +829,8 @@ window w as (RANGE BETWEEN
                 In RANGE mode without Partition:
 
                 Partition is the whole set.
+
+                <p>frame_start: first <em>peer</em> row</p>
               </aside>
             </section>
 
@@ -1526,24 +1529,24 @@ WINDOW cty AS (PARTITION BY country)
 
             <section>
               <p>Exercise: List the customer for every order with their country,
-              netamount, netamount per customer and the
+              netamount per order, netamount per customer and the
               netamount per country.</p>
                 <div class="fragment">
                   <pre><code data-noescape>
 SELECT customerid, country, netamount,
-       sum(netamount) OVER custcty,
-       sum(netamount) OVER cty
+       sum(netamount) OVER custcty AS per_customer,
+       sum(netamount) OVER cty AS per_country
   FROM customers
   JOIN orders USING (customerid)
 WINDOW cty AS (PARTITION BY country)
        custcty AS (<span class="emphasize">cty</span> order by customerid range current row);
                   </code></pre>
                   <pre><code>
- customerid │ country │ netamount │  sum   │    sum
-────────────┼─────────┼───────────┼────────┼────────────
-         12 │ US      │    350.87 │ 350.87 │ 1172676.73
-         13 │ US      │     83.31 │ 310.76 │ 1172676.73
-         13 │ US      │    227.45 │ 310.76 │ 1172676.73
+ customerid │ country │ netamount │  per_customer │ per_country
+────────────┼─────────┼───────────┼───────────────┼───────────────
+         12 │ US      │    350.87 │        350.87 │ 1172676.73
+         13 │ US      │     83.31 │        310.76 │ 1172676.73
+         13 │ US      │    227.45 │        310.76 │ 1172676.73
                   </code></pre>
                 </div>
                 <aside class="notes"></aside>
@@ -1562,7 +1565,7 @@ WINDOW cty AS (PARTITION BY country)
 
           <section>
 
-            <p>Next Chapter: SQL Xplained</p>
+            <p>Next Chapter: SQL Performance</p>
 
           </section>
 
