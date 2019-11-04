@@ -67,7 +67,7 @@ bookshelf.jpg-->
      GROUP BY <span data-fragment-index="0" class="fragment highlight-blue">country</span>;
                   </code></pre>
                   <pre><code>
-   country    │ count 
+   country    │ count
 ──────────────┼───────────
  France       │       971
  China        │      1002
@@ -608,50 +608,29 @@ https://www.flickr.com/photos/islandjoe/ window-triple.jpg
               </section>
 
               <section>
-                <h3>Example data</h3>
+                <h3>Average order value</h3>
                 <div class="sli">
                     <pre><code>
-SELECT * FROM c;
+select
+ orderdate,
+ date_trunc('week', orderdate),
+ netamount,
+ <span class="emphasize">avg(netamount) OVER ()</span>
+  from orders
+ limit 5;
                     </code>
                     </pre>
                     <pre><code>
- a
-────
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10                    </code>
+ orderdate  | week        | netamount |   avg
+------------+-------------+-----------+--------
+ 2004-01-27 | 2004-01-26  |    313.24 | 197.64
+ 2004-01-01 | 2003-12-29  |     54.90 | 197.64
+ 2004-01-17 | 2004-01-12  |    160.10 | 197.64
+ 2004-01-28 | 2004-01-26  |    106.67 | 197.64
+ 2004-01-09 | 2004-01-05  |    256.00 | 197.64
+                     </code>
                     </pre>
 
-                </div>
-              </section>
-
-              <section>
-                <h3>Simplest Example</h3>
-                <div class="sli">
-                  <pre><code data-noescape>
-select a, <span class="emphasize">sum(a) over()</span> from c;
-                  </code></pre>
-                  <pre><code>
- a  │ sum
-────┼─────
-  1 │  55
-  2 │  55
-  3 │  55
-  4 │  55
-  5 │  55
-  6 │  55
-  7 │  55
-  8 │  55
-  9 │  55
- 10 │  55
-                  </code></pre>
                 </div>
               </section>
 
@@ -668,58 +647,105 @@ SELECT customerid, count(*) OVER()
               </section>
 
               <section>
-                <h3>Declare Windows</h3>
+                <h3>Weekly Average order value</h3>
                 <div class="sli">
-                  <pre><code data-noescape>
-select a, sum(a) over <span class="emphasize">w</span>,
-          count(*) over <span class="emphasize">w</span>
-  from c
-<span class="emphasize">window w as ()</span>;
-                  </code></pre>
-                  <pre><code>
- a  │ sum │ count
-────┼─────┼───────
-  1 │  55 │    10
-  2 │  55 │    10
-  3 │  55 │    10
-  4 │  55 │    10
-  5 │  55 │    10
-  6 │  55 │    10
-  7 │  55 │    10
-  8 │  55 │    10
-  9 │  55 │    10
- 10 │  55 │    10
-                  </code></pre>
+                    <pre><code>
+select
+ orderdate,
+ date_trunc('week', orderdate),
+ netamount,
+ avg(netamount)
+   over (<span class="fragment highlight-current-blue">PARTITION BY</span>
+     <span class="fragment highlight-current-blue">date_trunc('week', orderdate)</span>)
+  from orders
+ limit 10;
+                    </code>
+                    </pre>
+                    <pre><code>
+ orderdate  | week        | netamount |   avg
+------------+-------------+-----------+--------
+ 2004-01-03 | 2003-12-29  |    384.20 | 186.76
+ 2004-01-04 | 2003-12-29  |     10.45 | 186.76
+ 2004-01-03 | 2003-12-29  |    235.31 | 186.76
+ 2004-01-01 | 2003-12-29  |     48.50 | 186.76
+ 2004-01-02 | 2003-12-29  |     71.31 | 186.76
+ 2004-01-06 | 2004-01-05  |    290.16 | 216.95
+ 2004-01-07 | 2004-01-05  |     46.32 | 216.95
+ 2004-01-10 | 2004-01-05  |    151.17 | 216.95
+ 2004-01-11 | 2004-01-05  |    267.29 | 216.95
+ 2004-01-06 | 2004-01-05  |     93.37 | 216.95
+                     </code>
+                    </pre>
+
                 </div>
               </section>
 
-              <section>
-                <h3>Frame Defaults</h3>
-                <div class="sli">
+            <section>
+              <p>Exercise: List the the first 10 customerids, the country and the
+                count for customers per country. </p>
+                <div class="fragment">
                   <pre><code data-noescape>
-select a, sum(a) over w,
-          count(*) over w
- from c
-window w as (<span class="emphasize">RANGE BETWEEN
-               UNBOUNDED PRECEDING
-               AND CURRENT ROW</span>);
+SELECT customerid,  country, count(*) OVER(PARTITION BY country)
+  FROM customers
+ ORDER BY customerid
+ LIMIT 10;
                   </code></pre>
                   <pre><code>
- a  │ sum │ count
-────┼─────┼───────
-  1 │  55 │    10
-  2 │  55 │    10
-  3 │  55 │    10
-  4 │  55 │    10
-  5 │  55 │    10
-  6 │  55 │    10
-  7 │  55 │    10
-  8 │  55 │    10
-  9 │  55 │    10
- 10 │  55 │    10
+ customerid | country | count 
+------------+---------+-------
+          1 | US      | 10000
+          2 | US      | 10000
+          3 | US      | 10000
+          4 | US      | 10000
+          5 | US      | 10000
+          6 | US      | 10000
+          7 | US      | 10000
+          8 | US      | 10000
+          9 | US      | 10000
+         10 | US      | 10000
                   </code></pre>
                 </div>
+                <aside class="notes">
+                  What happens to the count if we add a WHERE clause?
+                </aside>
               </section>
+
+              <section>
+                <h3>Ordered Weekly Average order value</h3>
+                <div class="sli">
+                    <pre><code>
+select
+ orderdate,
+ date_trunc('week', orderdate),
+ netamount,
+ avg(netamount)
+   over (PARTITION BY
+     date_trunc('week',
+       orderdate)
+     <span class="emphasize">ORDER BY orderdate</span>)
+  from orders
+ limit 10;
+                    </code>
+                    </pre>
+                    <pre><code>
+ orderdate  | week        | netamount |   avg
+------------+-------------+-----------+--------
+ 2004-01-01 | 2003-12-29  |    361.87 | 138.37
+ 2004-01-01 | 2003-12-29  |    140.47 | 138.37
+ 2004-01-01 | 2003-12-29  |    313.55 | 138.37
+ 2004-01-01 | 2003-12-29  |     58.92 | 138.37
+ 2004-01-01 | 2003-12-29  |    209.14 | 138.37
+ 2004-01-02 | 2003-12-29  |     45.10 | 152.57
+ 2004-01-02 | 2003-12-29  |    227.24 | 152.57
+ 2004-01-02 | 2003-12-29  |    183.09 | 152.57
+ 2004-01-02 | 2003-12-29  |    142.47 | 152.57
+ 2004-01-02 | 2003-12-29  |    131.74 | 152.57
+                     </code>
+                    </pre>
+
+                </div>
+              </section>
+
             </section>
 
             <section>
@@ -785,16 +811,62 @@ https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYY
                 </aside>
             </section>
 
-            <section>
-                <h3>Frame Defaults</h3>
+              <section>
+                <h3>Example data</h3>
+                <div class="sli">
+                    <pre><code>
+SELECT * FROM c;
+                    </code>
+                    </pre>
+                    <pre><code>
+ a
+────
+  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10                    </code>
+                    </pre>
+
+                </div>
+              </section>
+
+              <section>
+                <h3>Simplest Example</h3>
                 <div class="sli">
                   <pre><code data-noescape>
-select a, sum(a) over w,
-          count(*) over w
- from c
-window w as (RANGE BETWEEN
-               UNBOUNDED PRECEDING
-               AND <span class="emphasize">CURRENT ROW</span>);
+select a, <span class="emphasize">sum(a) over()</span> from c;
+                  </code></pre>
+                  <pre><code>
+ a  │ sum
+────┼─────
+  1 │  55
+  2 │  55
+  3 │  55
+  4 │  55
+  5 │  55
+  6 │  55
+  7 │  55
+  8 │  55
+  9 │  55
+ 10 │  55
+                  </code></pre>
+                </div>
+              </section>
+
+              <section>
+                <h3>Declare Windows</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over <span class="emphasize">w</span>,
+          count(*) over <span class="emphasize">w</span>
+  from c
+<span class="emphasize">window w as ()</span>;
                   </code></pre>
                   <pre><code>
  a  │ sum │ count
@@ -811,12 +883,35 @@ window w as (RANGE BETWEEN
  10 │  55 │    10
                   </code></pre>
                 </div>
-                <aside class="notes">
-                  <p>no partion defined</p>
-                  <p>no ordering defined</p>
-                  <p>What does CURRENT ROW mean?</p>
-                </aside>
-            </section>
+              </section>
+
+              <section>
+                <h3>Frame Defaults</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+select a, sum(a) over w,
+          count(*) over w
+ from c
+window w as (<span class="emphasize">RANGE BETWEEN
+               UNBOUNDED PRECEDING
+               AND CURRENT ROW</span>);
+                  </code></pre>
+                  <pre><code>
+ a  │ sum │ count
+────┼─────┼───────
+  1 │  55 │    10
+  2 │  55 │    10
+  3 │  55 │    10
+  4 │  55 │    10
+  5 │  55 │    10
+  6 │  55 │    10
+  7 │  55 │    10
+  8 │  55 │    10
+  9 │  55 │    10
+ 10 │  55 │    10
+                  </code></pre>
+                </div>
+              </section>
 
             <section>
               <h2>Current Row</h2>
@@ -835,7 +930,7 @@ window w as (RANGE BETWEEN
             </section>
 
             <section>
-                <h3>Back to example</h3>
+                <h3>Range is Default</h3>
                 <div class="sli">
                   <pre><code data-noescape>
 select a, sum(a) over w,
@@ -1467,36 +1562,6 @@ window w as (
                   <ul>
                     <li></li>
                   </ul>
-                </aside>
-            </section>
-
-            <section>
-              <p>Exercise: List the the first 10 customerids, the country and the
-                count for customers per country. </p>
-                <div class="fragment">
-                  <pre><code data-noescape>
-SELECT customerid,  country, count(*) OVER(PARTITION BY country)
-  FROM customers
- ORDER BY customerid
- LIMIT 10;
-                  </code></pre>
-                  <pre><code>
- customerid | country | count 
-------------+---------+-------
-          1 | US      | 10000
-          2 | US      | 10000
-          3 | US      | 10000
-          4 | US      | 10000
-          5 | US      | 10000
-          6 | US      | 10000
-          7 | US      | 10000
-          8 | US      | 10000
-          9 | US      | 10000
-         10 | US      | 10000
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  What happens to the count if we add a WHERE clause?
                 </aside>
             </section>
 
