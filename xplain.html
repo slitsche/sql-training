@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Xplained</h1>
             <p>Stefan Litsche</p>
-            <p>24-09-2019</p>
+            <p>19-11-2019</p>
             <aside class="notes">
               <ul>
                 <li>applicable to other RDBMS, details differ</li>
@@ -93,21 +93,6 @@
             </section>
 
             <section>
-                <h3>Input to Planning</h3>
-                <div class="">
-                  <ul>
-                    <li>Cost Model</li>
-                    <li>Cardinality Model</li>
-                    <li>Object Statistics</li>
-                  </ul>
-                </div>
-                <aside class="notes">
-                  <ul>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
                 <h3>Cost Model</h3>
                 <div class="">
                   <ul>
@@ -154,6 +139,24 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <h3>Input to Planning</h3>
+                <div class="">
+                  <ul>
+                    <li>Cost Model</li>
+                    <li>Cardinality Model</li>
+                    <li>Object Statistics</li>
+                  </ul>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Optimize for smallest cost</li>
+                    <li><b>Why</b> all these details?</li>
+                    <li>Story Essen remove index usage</li>
                   </ul>
                 </aside>
             </section>
@@ -428,6 +431,7 @@ SELECT lastname FROM customers WHERE zip = 36223;
                 <aside class="notes">
                   <ul>
                     <li>What in explain output indicates that this query could be made more efficient?</li>
+                    <li>Discuss worst case scenario for 4 rows</li>
                     <li>Next: Why do we have so many I/O?</li>
                   </ul>
                 </aside>
@@ -443,8 +447,9 @@ SELECT lastname FROM customers WHERE zip = 36223;
                 <aside class="notes">
                   <ul>
                     <li>Shorter plans tend to be faster</li>
-                    <li>Writes are faster with more indexes</li>
+                    <li>Writes are <b>slower</b> with more indexes</li>
                     <li>You can have too many indexes</li>
+                    <li><b>Story</b> Amsterdam</li>
                   </ul>
                 </aside>
             </section>
