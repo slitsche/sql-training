@@ -772,7 +772,8 @@ https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYY
                 <aside class="notes">
                   <ul>
                     <li>all optional</li>
-                    <li>beware of defaults</li>
+                    <li>window frames are constructed for every single input row separately</li>
+                    <li>if framing is used, order is important.</li>
                   </ul>
                 </aside>
               </section>
@@ -1620,9 +1621,12 @@ WINDOW cty AS (PARTITION BY country)
 
           <section>
 
-            <p><a href="https://www.postgresql.org/docs/current/functions-window.html">
-                Check the docs</a></p>
-            <p>Check out Data Lake: <br/>https://lago-webui-superset.saiki.zalan.do/</p>
+            <h2>Further steps</h2>
+            <ul>
+              <li>Functions</li>
+              <li>GROUPS</li>
+              <li>Different meanings of <code><em>offset</em></code></li>
+            </ul>
             <aside class="notes">
               <h1>Key take away</h1>
             </aside>
@@ -1631,6 +1635,7 @@ WINDOW cty AS (PARTITION BY country)
           <section>
 
             <p>Nested Data in BigQuery</p>
+            <p>PostgreSQL - Changes and Deployments with Zero Downtime</p>
             <p>SQL Performance</p>
 
           </section>
