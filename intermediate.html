@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>05-11-2019</p>
+            <p>21-01-2020</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -566,18 +566,7 @@ SELECT
  2004-08-30 00:00:00+00 │   218 │ 43858.71
                 </code></pre>
                 </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Where filters rows</li>
-                    <li>filtered rows are grouped</li>
-                    <li>groups are filtered by having</li>
-                  </ul>
-                  <p>What in <em>condition</em>?</p>
-                  <ul>
-                    <li>grouped column</li>
-                    <li>aggregate function</li>
-                  </ul>
-                </aside>
+                <aside class="notes"></aside>
               </section>
             </section>
 
@@ -677,6 +666,7 @@ SELECT
                      </code>
                     </pre>
 
+                <aside class="notes">Mind the partition change</aside>
                 </div>
               </section>
 
@@ -1048,6 +1038,7 @@ WINDOW w AS (<span class="emphasize">ROWS</span> CURRENT ROW);
                 </aside>
             </section>
 
+<!--
             <section>
                 <h3>Example Following</h3>
                 <div class="sli">
@@ -1078,6 +1069,7 @@ WINDOW w AS (ROWS between CURRENT ROW
                   <p>Same for PRECEDING</p>
                 </aside>
             </section>
+-->
 
           </section>
 
@@ -1096,7 +1088,7 @@ WINDOW w AS (ROWS between CURRENT ROW
 SELECT a, sum(a) OVER w,
           count(a) OVER w
   FROM c
-WINDOW w AS (<span class="emphasize">order by</span> a);
+WINDOW w AS (<span class="emphasize">ORDER BY</span> a);
                   </code></pre>
                   <pre><code>
  a  │ sum │ count
