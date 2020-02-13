@@ -123,6 +123,7 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Selectivity: username and city</li>
                     <li>Beware of functional dependencies</li>
                     <li>CREATE STATISTICS Since Postgres11</li>
                   </ul>
@@ -214,6 +215,7 @@
                   <ul>
                     <li>estimated Rows <b>emitted</b></li>
                     <li><b>Network</b> is NOT included</li>
+                    <li><b>width</b> retrieve what is needed</li>
                   </ul>
                 </aside>
             </section>
@@ -293,7 +295,7 @@ EXPLAIN <span class="emphasize">(ANALYZE)</span>
                 <aside class="notes">
                   <ul>
                     <li>Transactions</li>
-                    <li>Beware of explain analyze and update</li>
+                    <li><b>Beware</b> of explain analyze and update</li>
                   </ul>
                 </aside>
             </section>
@@ -820,7 +822,7 @@ EXPLAIN
                   <pre class=><code data-noescape>
 EXPLAIN
  SELECT * FROM orders
-  WHERE orderdate = 'yesterday';
+  WHERE orderdate = 'yesterday'::date;
                   </code></pre>
                   <pre><code>
  Index Scan using orders_orderdate_idx on orders  (cost=0.29..10.31 rows=32 width=30)
