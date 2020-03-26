@@ -60,6 +60,15 @@ explain (analyze, buffers, verbose, timing)
 
 drop index orders_orderdate_idx;
 
+EXPLAIN
+ SELECT firstname, lastname FROM CUSTOMERS
+  ORDER BY country ASC, zip DESC;
+
+create index multi_mixed ON customers (country ASC, zip DESC);
+
+EXPLAIN
+ SELECT lastname FROM customers ORDER BY country ASC;
+
 create index orders_orderdate_idx on orders (orderdate);
 
 --explain (analyze, buffers)
@@ -127,7 +136,7 @@ select * from pg_opclass
 limit 3;
 
 prod_eventlog_db=# explain select * from zel_event.e96001_order_created where "customerNumber" in (select "customerNumber" from zel_event.e60006_return_order_received where "shipmentNumber" = '1041020079573759');
-                                                                                        QUERY PLAN                                                                                        
+                                                                                        QUERY PLAN
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Nested Loop  (cost=38.71..207.00 rows=86 width=93)
    ->  HashAggregate  (cost=27.56..27.66 rows=2 width=11)
@@ -146,7 +155,7 @@ G               ->  Index Scan using "e60006_return_order_received_shipmentNumbe
 
 prod_eventlog_db=# \e
 explain select * from zel_event.e96001_order_created c where "customerNumber" in (
-   select "customerNumber" from zel_event.e60006_return_order_received r where c."customerNumber" = r."customerNumber" and "shipmentNumber" = '1041020079573759');                                                                           QUERY PLAN                                                                            
+   select "customerNumber" from zel_event.e60006_return_order_received r where c."customerNumber" = r."customerNumber" and "shipmentNumber" = '1041020079573759');                                                                           QUERY PLAN
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
  Append  (cost=0.00..3871477127.01 rows=109969592 width=93)
    ->  Seq Scan on e96001_order_created c  (cost=0.00..78039581.72 rows=2212272 width=94)
@@ -198,7 +207,7 @@ create table tdoublet (
     (3,4)
 ) as x;
 
-explain (analyze on, costs off)
+explain (analyze on, costs on, buffers on)
 select a,b
   from tdoublet
  where a in (
@@ -206,6 +215,15 @@ select a,b
          from tdoublet
         group by a
         having count(1) > 1);
+
+EXPLAIN (analyze on, costs on, buffers on)
+WITH cand AS (
+    SELECT lastname,
+        count(1) OVER
+            (PARTITION BY lastname RANGE CURRENT ROW) as c
+    FROM customers)
+SELECT lastname FROM cand
+ WHERE c > 1;
 
 --explain (analyze, buffers, verbose)
 explain (analyze on, costs off)
@@ -225,7 +243,7 @@ select a, b from cand
 
 \d customers
 
-explain (costs off)
+explain (costs off, analyze on, buffers on)
 select lastname
   from customers
  where lastname in (
@@ -234,13 +252,23 @@ select lastname
         group by lastname
         having count(1) > 1);
 
-explain (costs off)
+explain (costs off, analyze on, buffers on)
 with cand as (
 select lastname,
        count(1) over (partition by lastname range current row) as c
   from customers)
 select lastname from cand
  where c > 1;
+
+/*  introduce a real duplicate
+*/
+
+select customerid, lastname from customers limit 2;
+
+begin;
+update customers set lastname = 'UNUKXHJVXB' where customerid = 1;
+
+abort;
 
 -----------------------------
 /*

@@ -20,14 +20,14 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>19-11-2019</p>
+            <p>11.02.2020</p>
             <aside class="notes">
               <ul>
                 <li>applicable to other RDBMS, details differ</li>
                 <li><b>By the end of the training</b></li>
                 <ul>
-                  <li>how to leverage indexes</li>
                   <li>spot the issues in SQL queries</li>
+                  <li>how to leverage indexes</li>
                 </ul>
               </ul>
             </aside>
@@ -651,6 +651,82 @@ EXPLAIN
             </section>
 
             <section>
+              <h3>Ordering data with multi-column index</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+CREATE INDEX zip_slow ON customers (country, zip);
+
+EXPLAIN
+ SELECT firstname, lastname FROM CUSTOMERS
+  ORDER BY country, zip;
+                  </code></pre>
+                  <pre><code>
+Index Scan using <span class="emphasize">zip_slow</span> on customers
+  (cost=0.29..2214.87 rows=20000 width=27)
+(1 row)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>multi column index</li>
+                    <li>same ordering</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h3>Ordering data with multi-column index(2)</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+CREATE INDEX zip_slow ON customers (country, zip);
+
+EXPLAIN
+ SELECT firstname, lastname FROM CUSTOMERS
+ORDER BY <span class="emphasize">country, zip DESC</span>;
+                  </code></pre>
+                  <pre><code>
+ Sort  (cost=3075.77..3125.77 rows=20000 width=27)
+   Sort Key: country ASC, zip DESC
+   ->  Seq Scan on customers  (cost=0.00..688.00 rows=20000 width=27)
+(3 rows)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>multi column index</li>
+                    <li>mixed ordering</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h3>Mixed Ordering Multi Column Index</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+CREATE INDEX multi_mixed ON customers (country ASC, zip DESC);
+
+EXPLAIN
+ SELECT firstname, lastname FROM CUSTOMERS
+  ORDER BY country ASC, zip DESC;
+                  </code></pre>
+                  <pre><code>
+ Index Scan using multi_mixed on customers
+    (cost=0.29..2214.87 rows=20000 width=27)
+(1 row)
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>multi column index</li>
+                    <li>mixed ordering</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
               <h3>Partial Index</h3>
                 <div class="">
                   <pre class=><code data-noescape>
@@ -760,7 +836,7 @@ EXPLAIN (costs off)
             </section>
 
             <section>
-                <p>Single table access</p>
+                <p>Single Table Scan</p>
                 <div class="">
                   <pre class=><code data-noescape>
 EXPLAIN (costs off)
