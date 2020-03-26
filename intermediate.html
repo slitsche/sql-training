@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
-        <head>
-                <link rel="stylesheet" href="css/reveal.css">
-                <link rel="stylesheet" href="css/theme/beige.css">
-                <link rel="stylesheet" href="css/sli.css">
-                <meta charset="utf-8"/>
-<script>
+    <head>
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/beige.css">
+        <link rel="stylesheet" href="css/sli.css">
+        <meta charset="utf-8"/>
+    <script>
         var link = document.createElement( 'link' );
         link.rel = 'stylesheet';
         link.type = 'text/css';
         link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
         document.getElementsByTagName( 'head' )[0].appendChild( link );
-</script>
+    </script>
     </head>
         <body>
     <div class="reveal">
@@ -19,12 +19,19 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>21-01-2020</p>
+            <p>23-03-2020</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
                 <li>write analytical queries</li>
                 <li>using aggregate fn with groups and window fn</li>
+              </ul>
+              <ul>
+                <li>Felix</li>
+                <li>Voice vs Video:  tell us if broken sound.</li>
+                <li>Prefer text over screenshots</li>
+                <li>Share your screen</li>
+                <li>Mute when you are listening</li>
               </ul>
             </aside>
           </section>
@@ -42,7 +49,7 @@
                 <li>orderlines</li>
                 </ul>
                 <aside class="notes">
-                Available till end of wee
+
                 </aside>
             </section>
             </section>
@@ -86,7 +93,7 @@ bookshelf.jpg-->
                     <ul>
                       <li>List of Grouping columns</li>
                       <li>Aggregate function</li>
-                      <li>On Result of WHERE</li>
+                      <li>On Result of <b>WHERE</b></li>
                     </ul>
                   </aside>
                 </section>
@@ -135,20 +142,20 @@ bookshelf.jpg-->
             count(*)                     AS row_count,
             count(o.orderid)             AS orders,
             count(distinct c.customerid) AS customers,
-            count(distinct o.customerid) AS active_customers
+            count(distinct o.customerid) AS active
        FROM customers c
   LEFT JOIN orders o ON c.customerid = o.customerid
       GROUP BY country;
                   </code></pre>
                   <pre><code>
-   country    │ row_count │ orders │ customers │ active_customers 
-──────────────┼───────────┼────────┼───────────┼──────────────────
- Australia    │      1197 │    639 │      1034 │              476
- Canada       │      1178 │    649 │      1004 │              475
- Chile        │      1217 │    630 │      1047 │              460
- China        │      1147 │    609 │      1002 │              464
- France       │      1130 │    636 │       971 │              477
- Germany      │      1150 │    579 │      1004 │              433
+   country    │ row_count │ orders │ customers │ active
+──────────────┼───────────┼────────┼───────────┼───────
+ Australia    │      1197 │    639 │      1034 │    476
+ Canada       │      1178 │    649 │      1004 │    475
+ Chile        │      1217 │    630 │      1047 │    460
+ China        │      1147 │    609 │      1002 │    464
+ France       │      1130 │    636 │       971 │    477
+ Germany      │      1150 │    579 │      1004 │    433
                   </code></pre>
                   </div>
                   <aside class="notes">
@@ -280,7 +287,6 @@ SELECT country,
                   <aside class="notes">
                     <p><em>ordered set aggregate function</em> require ordering</p>
                     <p>top seller per country</p>
-                    <p>beware: duplicates</p>
                   </aside>
                 </section>
 
@@ -303,7 +309,6 @@ SELECT
                   </code></pre>
                   </div>
                 <aside class="notes">
-                  Filter Groups
                 </aside>
               </section>
 
@@ -326,7 +331,6 @@ SELECT
                   </code></pre>
                   </div>
                 <aside class="notes">
-                  Filter Groups
                 </aside>
               </section>
             </section>
@@ -452,8 +456,8 @@ SELECT distinct country, state,
        count(*) AS aggregate
   FROM customers
  GROUP BY GROUPING SETS(
-                        (country, state),
-                        country
+    (country, state),
+    country
  );
                   </code></pre>
                   </div>
@@ -545,7 +549,8 @@ SELECT
                 <div class="fragment sli">
                 <pre><code data-noescape >
 SELECT
-  date_trunc('week', orderdate) AS week,
+  date_trunc('week', orderdate)
+    AS week,
   count(*),
   sum(netamount)
    FROM orders
@@ -598,7 +603,7 @@ https://www.flickr.com/photos/islandjoe/ window-triple.jpg
 
               <section>
                 <h3>Average order value</h3>
-                <div class="sli">
+                <div class="">
                     <pre><code>
 SELECT
  orderdate,
@@ -637,13 +642,11 @@ SELECT customerid, count(*) OVER()
 
               <section>
                 <h3>Weekly Average order value</h3>
-                <div class="sli">
+                <div class="">
                     <pre><code>
 SELECT
- orderdate,
- date_trunc('week', orderdate),
- netamount,
- avg(netamount)
+ orderdate, date_trunc('week', orderdate),
+ netamount, avg(netamount)
    OVER (<span class="fragment highlight-current-blue">PARTITION BY</span>
      <span class="fragment highlight-current-blue">date_trunc('week', orderdate)</span>)
   FROM orders
@@ -681,7 +684,7 @@ SELECT customerid,  country, count(*) OVER(PARTITION BY country)
  LIMIT 10;
                   </code></pre>
                   <pre><code>
- customerid | country | count 
+ customerid | country | count
 ------------+---------+-------
           1 | US      | 10000
           2 | US      | 10000
@@ -702,17 +705,13 @@ SELECT customerid,  country, count(*) OVER(PARTITION BY country)
 
               <section>
                 <h3>Ordered Weekly Average order value</h3>
-                <div class="sli">
+                <div class="">
                     <pre><code>
 SELECT
- orderdate,
- date_trunc('week', orderdate),
- netamount,
- avg(netamount)
-   OVER (PARTITION BY
-     date_trunc('week',
-       orderdate)
-     <span class="emphasize">ORDER BY orderdate</span>)
+ orderdate, date_trunc('week', orderdate),
+ netamount, avg(netamount)
+   OVER (PARTITION BY date_trunc('week', orderdate)
+         <span class="emphasize">ORDER BY orderdate</span>)
   FROM orders
  LIMIT 10;
                     </code>
@@ -764,6 +763,7 @@ https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYY
                     <li>all optional</li>
                     <li>window frames are constructed for every single input row separately</li>
                     <li>if framing is used, order is important.</li>
+                    <li><b>GROUPS</b> recently added to Postgres</li>
                   </ul>
                 </aside>
               </section>
@@ -1118,7 +1118,7 @@ SELECT a, sum(a) OVER w,
   FROM c
 WINDOW w AS (
  ORDER BY a
- <span class="emphasize">RANGE</span> between UNBOUNDED PRECEDING 
+ <span class="emphasize">RANGE</span> between UNBOUNDED PRECEDING
        and CURRENT ROW
 );
                   </code></pre>
@@ -1444,6 +1444,8 @@ WINDOW w AS (PARTITION BY <span class="emphasize">a < 3</span>)
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>simple expression allowed, neither names nor number of
+                    columns allowed</li>
                     <li>partition with duplicates</li>
                     <li>missing ORDER BY: frame defaults to partition</li>
                   </ul>

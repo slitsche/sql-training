@@ -42,6 +42,7 @@ h1, h2, h3, h4, h5, h6 {
 .reveal pre code {
 	overflow: hidden !important;
 	font-family: Courier, 'Courier New', monospace !important;
+        font-size: 1em;
 }
 
 ul, ol, div, p {
