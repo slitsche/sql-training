@@ -20,9 +20,10 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>11.05.2020</p>
+            <p>14.07.2020</p>
             <aside class="notes">
               <ul>
+                <li>Aurora charges per I/O</li>
                 <li>applicable to other RDBMS, details differ</li>
                 <li><b>By the end of the training</b></li>
                 <ul>
@@ -41,6 +42,13 @@
                 <li>Output of <code>explain</code> command</li>
                 <li>Index Usage</li>
               </ul>
+            <aside class="notes">
+              <ul>
+                <li>Context: Monitoring as starting point</li>
+                <li>Is it worth it? </li>
+                <li>Identify the culprit: pg_badger, logs, pg_stat_statements, pg_view</li>
+              </ul>
+            </aside>
             </section>
 
           </section>
@@ -72,6 +80,7 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                    What does the plan influence?
                   </ul>
                 </aside>
             </section>
@@ -110,6 +119,13 @@
                     <li>Define <b>shared buffers</b></li>
                   </ul>
                 </aside>
+            </section>
+
+            <section>
+              <figure>
+                <img src="img/cache.png" width="80%"/>
+                <figcaption>Caches (by Bruce Momjian)</figcaption>
+              </figure>
             </section>
 
             <section>
@@ -351,6 +367,13 @@ EXPLAIN
             </section>
 
             <section>
+              <figure>
+                <img src="img/page-structure.png" />
+                <figcaption>Page Structure (by Bruce Momjian)</figcaption>
+              </figure>
+            </section>
+
+            <section>
                 <h3>B-Tree Index</h3>
                   <ul>
                     <li>Balanced</li>
@@ -363,6 +386,13 @@ EXPLAIN
                     <li>Start drawing a tree with ids</li>
                   </ul>
                 </aside>
+            </section>
+
+            <section>
+              <figure>
+                <img src="https://use-the-index-luke.com/static/fig01_02_tree_structure.en.BdEzalqw.png">
+              <figcaption>Index Structure (by Marcus Winand)</figcaption>
+              </figure>
             </section>
 
             <section>
@@ -589,6 +619,7 @@ SELECT lastname FROM customers WHERE zip = 36223;
                 <aside class="notes">
                   <ul>
                     <li>Multicolumn for first or first and second!</li>
+                    <li>Bloat might be another cause: ACID team</li>
                   </ul>
                 </aside>
             </section>
@@ -931,6 +962,7 @@ EXPLAIN
                     <li>Too many blocks?</li>
                     <li>Redundant predicates?</li>
                     <li>Bad estimate?</li>
+                    <li>Contention?</li>
                   </ul>
                 <aside class="notes">
                   <ul>
