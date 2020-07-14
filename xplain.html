@@ -124,8 +124,13 @@
             <section>
               <figure>
                 <img src="img/cache.png" width="80%"/>
-                <figcaption>Caches (by Bruce Momjian)</figcaption>
               </figure>
+                <aside class="notes">
+                  <ul>
+                    <li>Mention the different sizes</li>
+                    <li>Size on disk is normally higher then available RAM</li>
+                  </ul>
+                </aside>
             </section>
 
             <section>
@@ -182,6 +187,7 @@
                     <li>Optimize for smallest cost</li>
                     <li><b>Why</b> all these details?</li>
                     <li>Story Essen remove index usage</li>
+                    <li>No index - which index is used? as next topic</li>
                   </ul>
                 </aside>
             </section>
@@ -383,8 +389,8 @@ EXPLAIN
             <section>
                 <h3>B-Tree Index</h3>
                   <ul>
-                    <li>Balanced</li>
-                    <li>Ordered</li>
+                    <li>Tree is balanced</li>
+                    <li>Items are ordered</li>
                     <li>Leaf nodes double linked list</li>
                   </ul>
                 <aside class="notes">
@@ -397,9 +403,17 @@ EXPLAIN
 
             <section>
               <figure>
-                <img src="https://use-the-index-luke.com/static/fig01_02_tree_structure.en.BdEzalqw.png">
+                <img src="https://use-the-index-luke.com/static/fig01_02_tree_structure.en.BdEzalqw.png"
+width="800" />
               <figcaption>Index Structure (by Markus Winand)</figcaption>
               </figure>
+              <aside class="notes">
+                <ul>
+                  <li>Ordered items</li>
+                  <li>Item 46 is in multiple blocks present</li>
+                  <li>Leaf nodes point to table row</li>
+                </ul>
+              </aside>
             </section>
 
             <section>
@@ -426,10 +440,9 @@ EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>Mention buffers</li>
                     <li><b>Always</b> includes table access</li>
-                    <li>Proceed with the drawing</li>
                     <li>Compare block count</li>
+                    <li>Mention height of index</li>
                   </ul>
                 </aside>
             </section>
@@ -443,8 +456,6 @@ EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
                   </ul>
                 <aside class="notes">
                   <ul>
-                    <li>Start drawing a tree with ids</li>
-                    <li>Discuss Scan Leaf nodes</li>
                   </ul>
                 </aside>
             </section>
