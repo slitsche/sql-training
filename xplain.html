@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>14.07.2020</p>
+            <p>15.09.2020</p>
             <aside class="notes">
               <ul>
                 <li>Aurora charges per I/O</li>
@@ -159,6 +159,37 @@
             </section>
 
             <section>
+                <p>Exercise: Investigate the cardinality and distribution of
+                  column <code>customers.creditcardtype</code></p>
+                <div class="fragment sli">
+                  <pre class=><code data-noescape>
+SELECT creditcardtype, count(*) AS count
+  FROM customers
+ GROUP BY creditcardtype
+ ORDER BY count DESC;
+
+ creditcardtype | count
+----------------+-------
+              1 |  4043
+              4 |  4019
+              3 |  4011
+              2 |  3964
+              5 |  3963
+(5 rows)
+</code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>No null value</li>
+                    <li>5 different values</li>
+                    <li>small diff between max and min value</li>
+                    <li>count(distinct creditcardtype) as a start</li>
+                    <li>same order of magnitude for any of cctype</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
                 <h3>Object Statistic</h3>
                 <div class="">
                   <ul>
@@ -169,6 +200,7 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>When is needed ANALYZE manually?</li>
                   </ul>
                 </aside>
             </section>
