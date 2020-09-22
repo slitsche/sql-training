@@ -19,19 +19,12 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>21-07-2020</p>
+            <p>22-09-2020</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
                 <li>write analytical queries</li>
                 <li>using aggregate fn with groups and window fn</li>
-              </ul>
-              <ul>
-                <li>Felix</li>
-                <li>Voice vs Video:  tell us if broken sound.</li>
-                <li>Prefer text over screenshots</li>
-                <li>Share your screen</li>
-                <li>Mute when you are listening</li>
               </ul>
             </aside>
           </section>
@@ -1605,7 +1598,7 @@ SELECT customerid, country, netamount,
        sum(netamount) OVER cty AS per_country
   FROM customers
   JOIN orders USING (customerid)
-WINDOW cty AS (PARTITION BY country)
+WINDOW cty AS (PARTITION BY country),
        custcty AS (<span class="emphasize">cty</span> order by customerid range current row);
                   </code></pre>
                   <pre><code>
