@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>22-09-2020</p>
+            <p>13-10-2020</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -882,7 +882,7 @@ SELECT a, sum(a) OVER <span class="emphasize">w</span>,
                   <pre><code data-noescape>
 SELECT a, sum(a) OVER w,
           count(*) OVER w
- FROM c
+  FROM c
 WINDOW w AS (<span class="emphasize">RANGE BETWEEN
                UNBOUNDED PRECEDING
                AND CURRENT ROW</span>);
@@ -926,7 +926,7 @@ WINDOW w AS (<span class="emphasize">RANGE BETWEEN
                   <pre><code data-noescape>
 SELECT a, sum(a) OVER w,
           count(*) OVER w
- FROM c
+  FROM c
 WINDOW w AS (<span class="emphasize">RANGE</span> BETWEEN
                UNBOUNDED PRECEDING
                AND CURRENT ROW);
@@ -955,7 +955,7 @@ WINDOW w AS (<span class="emphasize">RANGE</span> BETWEEN
                   <pre><code data-noescape>
 SELECT a, sum(a) OVER w,
           count(*) OVER w
- FROM c
+  FROM c
 WINDOW w AS (<span class="emphasize">ROWS</span> BETWEEN
                UNBOUNDED PRECEDING
                AND CURRENT ROW);
