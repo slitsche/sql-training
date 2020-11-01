@@ -948,6 +948,66 @@ SELECT lastname FROM cand
             </section>
 
             <section>
+                <p>Excercise:</p>
+                <p>Pagination: Compare two approaches</p>
+                <div class="">
+                  <pre><code data-noescape>
+SELECT *
+  FROM customers
+ ORDER BY customerid
+ LIMIT 5
+OFFSET 100;
+
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+SELECT *
+  FROM customers
+ WHERE customerid > 100
+   AND customerid < 106
+ ORDER BY customerid;
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Pagination: Offset vs. Seek</p>
+                <div class="">
+                  <pre><code data-noescape>
+-- OFFSET
+ Limit  (cost=5.38..5.64 rows=5 width=268)
+        (actual time=0.040..0.041 rows=5 loops=1)
+   ->  Index Scan using customers_pkey on customers
+            (cost=0.29..1019.29 rows=20000 width=268)
+            (actual time=0.013..0.034 rows=105 loops=1)
+ Planning time: 0.221 ms
+ Execution time: 0.071 ms
+                  </code></pre>
+                  <pre class=""><code>
+-- SEEK
+Index Scan using customers_pkey on customers
+    (cost=0.29..8.41 rows=6 width=268)
+    (actual time=0.035..0.042 rows=5 loops=1)
+   Index Cond: ((customerid > 100) AND (customerid < 106))
+ Planning time: 0.574 ms
+ Execution time: 0.132 ms
+
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Shorter Execution plan</li>
+                    <li>Less rows, less I/O</li>
+                    <li>Scalability</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
                 <p>Does this query use the index?</p>
                 <div class="">
                   <pre><code data-noescape>

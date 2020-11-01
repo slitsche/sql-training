@@ -345,3 +345,25 @@ select name, setting from pg_settings
 explain select * from t1 where a in (1, 2);
 
 explain select * from t1 where a between 1 and 2;
+
+
+/*
+pagination
+*/
+
+explain (analyze, buffers)
+select *
+  from customers
+  order by customerid
+  limit 5
+  offset 100;
+
+\d customers
+
+explain (analyze, buffers)
+select *
+  from customers
+ where customerid > 100
+   and customerid < 106
+ order by customerid;
+ 
