@@ -366,4 +366,39 @@ select *
  where customerid > 100
    and customerid < 106
  order by customerid;
+
+explain (analyze, buffers)
+select *
+  from customers
+ where customerid > 100
+ order by customerid
+ limit 5;
+
+
+select lastname, count(*)
+  from customers
+ group by lastname
+ order by 2 desc
+ limit 10;
  
+\d orders
+
+explain
+select *
+  from orders
+ where orderdate > '2004-01-31';
+
+explain
+select *
+  from orders
+ where orderdate > '2004-11-30';
+
+
+deallocate binding;
+
+prepare binding (date) AS
+select *
+  from orders
+ where orderdate > $1;
+
+explain execute binding('2004-11-30'::date);

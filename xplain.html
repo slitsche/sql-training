@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>15.09.2020</p>
+            <p>03.11.2020</p>
             <aside class="notes">
               <ul>
                 <li>Aurora charges per I/O</li>
@@ -383,6 +383,46 @@ EXPLAIN
                 </aside>
             </section>
 
+            <section>
+                <p>Exercise:</p>
+                <p>Compare the execution plans</p>
+                <div class="">
+                  <pre class="fragment sli"><code data-noescape>
+SELECT *
+  FROM orders
+ WHERE orderdate > '2004-01-31';
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+SELECT *
+  FROM orders
+ WHERE orderdate > '2004-11-30';
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Bound values may have effect</p>
+                <div class="">
+                  <pre><code data-noescape>
+ Seq Scan on orders  (cost=0.00..250.00 rows=11019 width=30)
+   Filter: (orderdate > '2004-01-31'::date)
+(2 rows)
+                  </code></pre>
+                  <pre class=""><code>
+ Index Scan using orders_orderdate_idx on orders  (cost=0.29..47.08 rows=1001 width=30)
+   Index Cond: (orderdate > '2004-11-30'::date)
+(2 rows)
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <p>Depending on value queries can have different execution plans</p>
+                </aside>
+            </section>
+
           </section>
 
           <section data-transition="slide">
@@ -732,6 +772,67 @@ EXPLAIN
             </section>
 
             <section>
+                <p>Exercise:</p>
+                <p>Pagination: Compare two approaches</p>
+                <div class="">
+                  <pre class="fragment sli"><code data-noescape>
+SELECT *
+  FROM customers
+ ORDER BY customerid
+ LIMIT 5
+OFFSET 100;
+
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+SELECT *
+  FROM customers
+ WHERE customerid > 100
+ ORDER BY customerid
+ LIMIT 5;
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Service offer pagination through customers</li>
+                    <li>Order by ID</li>
+                    <li>Page size 5</li>
+                    <li>Why choose one over the other?</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <p>Pagination: Offset vs. Seek</p>
+                <div class="">
+                  <pre><code data-noescape>
+-- OFFSET
+ Limit  (cost=5.38..5.64 rows=5 width=268)
+        (actual time=0.040..0.041 rows=5 loops=1)
+   ->  Index Scan using customers_pkey on customers
+            (cost=0.29..1019.29 rows=20000 width=268)
+            (actual time=0.013..0.034 <span class="emphasize">rows=105</span> loops=1)
+                  </code></pre>
+                  <pre class=""><code>
+-- SEEK
+ Limit  (cost=0.29..0.56 rows=5 width=268)
+        (actual time=0.055..0.063 rows=5 loops=1)
+   ->  Index Scan using customers_pkey on customers
+           (cost=0.29..1065.55 rows=19901 width=268)
+           (actual time=0.053..0.057 rows=5 loops=1)
+         <span class="emphasize">Index Cond: (customerid > 100)</span>
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Less rows, less I/O</li>
+                    <li>Scalability</li>
+                    <li>Seek works also without <code>limit</code>: thread the
+                    last id through subsequent calls</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
               <h3>Ordering data with multi-column index</h3>
                 <div class="">
                   <pre class=><code data-noescape>
@@ -943,66 +1044,6 @@ SELECT lastname FROM cand
                 <aside class="notes">
                   <ul>
                     <li>Mind the memory usage</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Exercise:</p>
-                <p>Pagination: Compare two approaches</p>
-                <div class="">
-                  <pre><code data-noescape>
-SELECT *
-  FROM customers
- ORDER BY customerid
- LIMIT 5
-OFFSET 100;
-
-                  </code></pre>
-                  <pre class="fragment sli"><code>
-SELECT *
-  FROM customers
- WHERE customerid > 100
-   AND customerid < 106
- ORDER BY customerid;
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Pagination: Offset vs. Seek</p>
-                <div class="">
-                  <pre><code data-noescape>
--- OFFSET
- Limit  (cost=5.38..5.64 rows=5 width=268)
-        (actual time=0.040..0.041 rows=5 loops=1)
-   ->  Index Scan using customers_pkey on customers
-            (cost=0.29..1019.29 rows=20000 width=268)
-            (actual time=0.013..0.034 rows=105 loops=1)
- Planning time: 0.221 ms
- Execution time: 0.071 ms
-                  </code></pre>
-                  <pre class=""><code>
--- SEEK
-Index Scan using customers_pkey on customers
-    (cost=0.29..8.41 rows=6 width=268)
-    (actual time=0.035..0.042 rows=5 loops=1)
-   Index Cond: ((customerid > 100) AND (customerid < 106))
- Planning time: 0.574 ms
- Execution time: 0.132 ms
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Shorter Execution plan</li>
-                    <li>Less rows, less I/O</li>
-                    <li>Scalability</li>
                   </ul>
                 </aside>
             </section>
