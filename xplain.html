@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>03.11.2020</p>
+            <p>12.01.2021</p>
             <aside class="notes">
               <ul>
                 <li>Aurora charges per I/O</li>
@@ -97,6 +97,8 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>many possible plans</li>
+                    <li>Which is the best plan?</li>
                   </ul>
                 </aside>
             </section>
@@ -355,6 +357,7 @@ EXPLAIN <span class="emphasize">(ANALYZE)</span>
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li><b>Formatting</b> changed</li>
                     <li>Transactions</li>
                     <li><b>Beware</b> of explain analyze and update</li>
                   </ul>
@@ -400,6 +403,7 @@ SELECT *
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Both differ in value only</li>
                   </ul>
                 </aside>
             </section>
@@ -420,6 +424,7 @@ SELECT *
                 </div>
                 <aside class="notes">
                   <p>Depending on value queries can have different execution plans</p>
+                  <p>Result set order of magnitude different</p>
                 </aside>
             </section>
 

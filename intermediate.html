@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>13-10-2020</p>
+            <p>18-01-2021</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -1374,6 +1374,32 @@ WINDOW w AS (ORDER BY a
  4 │   4 │     1
  5 │   5 │     1
  5 │   5 │     1
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section>
+                <p>Exercise: List the date and netamount per order together with the
+                  accumulating daily revenue.</p>
+                <div class="">
+                  <pre class="sli fragment"><code>
+ orderdate  | netamount | daily_revenue
+------------+-----------+---------------
+ 2004-01-01 |     54.90 |       4428.15
+ 2004-01-01 |    145.50 |       4428.15
+ 2004-01-01 |     81.68 |       4428.15
+ 2004-01-01 |     31.86 |       4428.15
+ 2004-01-01 |      9.04 |       4428.15
+                  </code></pre>
+                  <pre class="sli fragment"><code data-noescape>
+SELECT orderdate,
+       netamount,
+       SUM(netamount) OVER (ORDER BY orderdate)
+       AS daily_revenue
+  FROM orders
+ LIMIT 100;
                   </code></pre>
                 </div>
                 <aside class="notes">
