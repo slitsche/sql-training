@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>06.04.2021</p>
+            <p>19.05.2021</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -760,8 +760,8 @@ https://www.flickr.com/photos/enricomatteucci/6977528665/in/photolist-bCzEbn-bYY
                 <aside class="notes">
                   <ul>
                     <li>all optional</li>
-                    <li>window frames are constructed for every single input row separately</li>
                     <li>if framing is used, order is important.</li>
+                    <li>window frames are constructed for every single input row separately</li>
                     <li><b>GROUPS</b> recently added to Postgres</li>
                   </ul>
                 </aside>
@@ -1386,12 +1386,12 @@ WINDOW w AS (ORDER BY a
                   <pre class="sli fragment"><code>
  orderdate  | netamount | daily_revenue
 ------------+-----------+---------------
- 2004-01-01 |     54.90 |       4428.15
- 2004-01-01 |    145.50 |       4428.15
- 2004-01-01 |     81.68 |       4428.15
- 2004-01-01 |     31.86 |       4428.15
- 2004-01-01 |      9.04 |       4428.15
-                  </code></pre>
+ 2004-01-01 |    124.77 |       4428.15
+ 2004-01-01 |     48.50 |       4428.15
+ 2004-01-01 |     65.43 |       4428.15
+ 2004-01-02 |    183.09 |       9154.52
+ 2004-01-02 |    227.24 |       9154.52
+ 2004-01-02 |    131.74 |       9154.52                  </code></pre>
                   <pre class="sli fragment"><code data-noescape>
 SELECT orderdate,
        netamount,
