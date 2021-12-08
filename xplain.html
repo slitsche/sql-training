@@ -153,6 +153,8 @@
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Explain term cardinality:</li>
+                    <li>the number of distinct values in a table column relative to the number of rows in the table</li>
                     <li>Selectivity: username and city</li>
                     <li>Beware of functional dependencies</li>
                     <li>CREATE STATISTICS Since Postgres11</li>
@@ -610,7 +612,7 @@ SELECT lastname FROM customers WHERE zip = 36223;
             <section>
               <h3>Choose an index</h3>
                   <ul>
-                    <li>column</li>
+                    <li>column is referenced</li>
                     <li>used operator matches the supported set</li>
                     <li>retrieve less 10..15% of rows</li>
                   </ul>
