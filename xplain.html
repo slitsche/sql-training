@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>16.03.2021</p>
+            <p>16.03.2022</p>
             <aside class="notes">
               <ul>
                 <li>Aurora charges per I/O</li>
@@ -163,7 +163,7 @@
             </section>
 
             <section>
-                <p>Exercise: Investigate the cardinality and distribution of
+                <p>📝 Exercise: Investigate the cardinality and distribution of
                   column <code>customers.creditcardtype</code></p>
                 <div class="fragment sli">
                   <pre class=><code data-noescape>
@@ -383,13 +383,13 @@ EXPLAIN
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>NEXT: was does "Index Scan" mean?</li>
+                    <li>Let&apos;s practise</li>
                   </ul>
                 </aside>
             </section>
 
             <section>
-                <p>Exercise:</p>
+                <p>📝 Exercise:</p>
                 <p>Compare the execution plans</p>
                 <div class="">
                   <pre class="fragment sli"><code data-noescape>
@@ -425,8 +425,12 @@ SELECT *
                   </code></pre>
                 </div>
                 <aside class="notes">
-                  <p>Depending on value queries can have different execution plans</p>
-                  <p>Result set order of magnitude different</p>
+                  <ul>
+                    <li>Depending on value queries can have different execution plans</li>
+                    <li>Result set order of magnitude different</li>
+                    <li>Check Postgresql logs for parameter of slow queries</li>
+                    <li>NEXT: Why that?</li>
+                  </ul>
                 </aside>
             </section>
 
@@ -540,7 +544,8 @@ EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
             </section>
 
             <section>
-                <p>Exercise: How many blocks do we process in this query?</p>
+              <p>📝 Exercise:</p>
+              <p>How many blocks do we process in this query?</p>
                 <div class="">
                   <pre class=><code data-noescape>
 SELECT lastname FROM customers WHERE zip = 36223;
@@ -570,9 +575,9 @@ SELECT lastname FROM customers WHERE zip = 36223;
             <section>
                 <h3>Summary</h3>
                   <ul>
-                    <li>Use explain to spot wasted I/O</li>
                     <li>Index scales with growth of rowcount</li>
                     <li>Cost of maintenance</li>
+                    <li>Use explain to spot wasted I/O</li>
                   </ul>
                 <aside class="notes">
                   <ul>
@@ -592,6 +597,21 @@ SELECT lastname FROM customers WHERE zip = 36223;
             </section>
 
             <section>
+              <h3>Choose an index</h3>
+                  <ul>
+                    <li>column is referenced</li>
+                    <li>used operator matches the supported set</li>
+                    <li>retrieve less 10..15% of the table</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Remeber the exercise: parameter matters</li>
+                    <li>Query should run frequently</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
               <h3>Index types</h3>
                   <ul>
                     <li>B-Tree</li>
@@ -605,20 +625,6 @@ SELECT lastname FROM customers WHERE zip = 36223;
                     <li>You can have too many indexes</li>
                     <li>Check out Postgres extensions</li>
                     <li>Bloomfilter or hypothetical indexes available</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Choose an index</h3>
-                  <ul>
-                    <li>column is referenced</li>
-                    <li>used operator matches the supported set</li>
-                    <li>retrieve less 10..15% of rows</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Query should run frequently</li>
                   </ul>
                 </aside>
             </section>
@@ -706,7 +712,7 @@ SELECT lastname FROM customers WHERE zip = 36223;
        (cost=0.29..17.72 rows=4 width=11)
        (actual time=0.068..0.078 rows=4 loops=1)
    Index Cond: (zip = 36223)
-   Buffers: shared hit=4 read=2
+   Buffers: shared <span class="emphasize">hit=4 read=2</span>
  Planning time: 0.434 ms
  Execution time: 0.115 ms
 (5 rows)
@@ -744,10 +750,21 @@ EXPLAIN
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Remember memory</li>
                     <li>SORT is a new Node type in explain</li>
                     <li>consider work_mem</li>
                   </ul>
                 </aside>
+            </section>
+
+            <section>
+              <figure>
+                <img src="img/shared-buffers.png"/>
+                <figcaption>RAM Usage (by Bruce Momjian)</figcaption>
+              </figure>
+              <aside class="notes">
+                <p>Remember double linked list</p>
+              </aside>
             </section>
 
             <section>
@@ -779,7 +796,7 @@ EXPLAIN
             </section>
 
             <section>
-                <p>Exercise:</p>
+                <p>📝 Exercise:</p>
                 <p>Pagination: Compare two approaches</p>
                 <div class="">
                   <pre class="fragment sli"><code data-noescape>
@@ -992,7 +1009,7 @@ SELECT o.*
             </section>
 
             <section>
-                <p>Exercise: Improve Finding Doublets</p>
+                <p>📝 Exercise: Improve Finding Doublets</p>
                 <div class="">
                   <pre class=><code data-noescape>
 EXPLAIN (costs off)
