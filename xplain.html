@@ -1073,6 +1073,74 @@ SELECT lastname FROM cand
             </section>
 
             <section>
+                <p>How to Improve Analytical Query?</p>
+                <div class="">
+                  <pre class=><code data-noescape>
+SELECT customerid, country, count(*)
+  FROM orders AS o
+  JOIN customers AS c USING (customerid)
+ GROUP BY o.customerid, c.country
+ ORDER BY 3,1 DESC
+ LIMIT 5;
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+ Limit  (cost=1598.83..1598.84 rows=5 width=26)
+   ->  Sort  (cost=1598.83..1628.83 rows=12000 width=26)
+         Sort Key: (count(*)), o.customerid DESC
+         ->  HashAggregate  (cost=1279.51..1399.51 rows=12000 width=26)
+               Group Key: o.customerid, c.country
+               ->  Hash Join  (cost=938.00..1189.51 rows=12000 width=9)
+                     Hash Cond: (o.customerid = c.customerid)
+                     ->  Seq Scan on orders o  (cost=0.00..220.00 rows=12000 width=4)
+                     ->  Hash  (cost=688.00..688.00 rows=20000 width=9)
+                           ->  Seq Scan on customers c  (cost=0.00..688.00 rows=20000 width=9)
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Discuss Hash Join</li>
+                    <li>What could be done to improve that query?</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+                <div class="">
+                  <pre class=><code data-noescape>
+WITH ordered AS (
+    SELECT customerid, count(*)
+      FROM orders AS o
+     GROUP BY o.customerid
+     ORDER BY 2,1 desc
+     LIMIT 5)
+SELECT o.customerid, country, count
+  FROM ordered AS o
+  JOIN customers AS c USING (customerid);
+                  </code></pre>
+                  <pre class="fragment sli"><code>
+ Nested Loop  (cost=519.68..561.02 rows=5 width=17)
+   CTE ordered
+     ->  Limit  (cost=519.38..519.39 rows=5 width=12)
+           ->  Sort  (cost=519.38..541.87 rows=8996 width=12)
+                 Sort Key: (count(*)), o_1.customerid DESC
+                 ->  HashAggregate  (cost=280.00..369.96 rows=8996 width=12)
+                       Group Key: o_1.customerid
+                       ->  Seq Scan on orders o_1  (cost=0.00..220.00 rows=12000 width=4)
+   ->  CTE Scan on ordered o  (cost=0.00..0.10 rows=5 width=12)
+   ->  Index Scan using customers_pkey on customers c  (cost=0.29..8.30 rows=1 width=9)
+         Index Cond: (customerid = o.customerid)
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li>Order is not defined! within a table</li>
+                    <li>What could be done to improve that query?</li>
+                  </ul>
+                </aside>
+            </section>
+
+
+            <section>
                 <p>Does this query use the index?</p>
                 <div class="">
                   <pre><code data-noescape>
