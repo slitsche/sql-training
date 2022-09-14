@@ -377,7 +377,35 @@ SELECT a, b, count(*)
                 </aside>
               </section>
 
-              <section>
+               <section>
+                <h3>Union of Group</h3>
+                <div class="sli">
+                <pre><code data-noescape >
+SELECT a, b, count(*)
+  FROM s
+ GROUP BY a,b
+UNION ALL
+SELECT null, null, count(*)
+  FROM s;
+                  </code></pre>
+                  <pre><code>
+ a | b | count
+---+---+-------
+ 1 | 1 |     1
+ 2 | 2 |     1
+ 3 | 1 |     1
+ 3 | 2 |     1
+ 1 | 2 |     1
+ 2 | 1 |     1
+   |   |     6
+                  </code></pre>
+                  </div>
+                <aside class="notes">
+                  <p>Expensive, because of two tables scans</p>
+                </aside>
+              </section>
+
+             <section>
                 <h3>Multiple sets</h3>
                 <div class="sli">
                 <pre><code data-noescape >
