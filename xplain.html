@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>16.03.2022</p>
+            <p>16.11.2022</p>
             <aside class="notes">
               <ul>
                 <li>Aurora charges per I/O</li>
@@ -1067,6 +1067,7 @@ SELECT lastname FROM cand
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>No Silver Bullet</li>
                     <li>Mind the memory usage</li>
                   </ul>
                 </aside>
@@ -1205,7 +1206,6 @@ EXPLAIN
                     <li>Too many blocks?</li>
                     <li>Redundant predicates?</li>
                     <li>Bad estimate?</li>
-                    <li>Contention?</li>
                   </ul>
                 <aside class="notes">
                   <ul>
@@ -1218,6 +1218,7 @@ EXPLAIN
                         <li>wrong execution model (correlated subquery)</li>
                         <li>skewed data</li>
                     </ul>
+                    <li>Contention? There are more issues possible</li>
                   </ul>
                 </aside>
             </section>
