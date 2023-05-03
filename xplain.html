@@ -146,9 +146,9 @@
                 <h3>Cardinality Model</h3>
                 <div class="">
                   <ul>
-                    <li>Size of intermediate results</li>
                     <li>Probalistic approach</li>
-                    <li>Use of objects statistics</li>
+                    <li>Size of intermediate results</li>
+                    <li>Beware of functional dependencies</li>
                   </ul>
                 </div>
                 <aside class="notes">
@@ -156,7 +156,6 @@
                     <li>Explain term cardinality:</li>
                     <li>the number of distinct values in a table column relative to the number of rows in the table</li>
                     <li>Selectivity: username and city</li>
-                    <li>Beware of functional dependencies</li>
                     <li>CREATE STATISTICS Since Postgres11</li>
                   </ul>
                 </aside>
@@ -198,13 +197,14 @@ SELECT creditcardtype, count(*) AS count
                 <div class="">
                   <ul>
                     <li>Describes distribution of data</li>
-                    <li>Gathered in background</li>
-                    <li>Based on sample</li>
+                    <li>Gathered in background, based on sample</li>
+                    <li>No statistics for Jsonb documents</li>
                   </ul>
                 </div>
                 <aside class="notes">
                   <ul>
                     <li>When is needed ANALYZE manually?</li>
+                    <li>contsel is constant 0.1%</li>
                   </ul>
                 </aside>
             </section>
@@ -438,7 +438,7 @@ SELECT *
 
           <section data-transition="slide">
             <section>
-                <h2>Anatomy</h2>
+                <h2>Index Anatomy</h2>
                 <aside class="notes">
                   <ul>
                   </ul>
@@ -849,7 +849,7 @@ SELECT *
                 <aside class="notes">
                   <ul>
                     <li>Less rows, less I/O</li>
-                    <li>Scalability</li>
+                    <li>Scalability: optimize not for mean performance, but for p99</li>
                     <li>Seek works also without <code>limit</code>: thread the
                     last id through subsequent calls</li>
                   </ul>
