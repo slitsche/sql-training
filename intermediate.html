@@ -19,7 +19,7 @@
           <section>
             <h1>SQL Intermediate</h1>
             <p>Stefan Litsche</p>
-            <p>21.09.2021</p>
+            <p>21.06.2023</p>
             <aside class="notes">
               <p>By the end the training</p>
               <ul>
@@ -1641,6 +1641,65 @@ WINDOW cty AS (PARTITION BY country)
             </section>
 
             <section>
+                <h3>Access other rows</h3>
+                <div class="sli">
+                  <pre><code data-noescape>
+SELECT a,
+       LAG(a) over w,
+       LEAD(a) over w
+  FROM d
+WINDOW w AS ()
+ ORDER BY a
+                  </code></pre>
+                  <pre><code>
+ a | lag | lead
+---+-----+------
+ 1 |     |    1
+ 1 |   1 |    2
+ 2 |   1 |    2
+ 2 |   2 |    3
+ 3 |   2 |    3
+ 3 |   3 |    4
+ 4 |   3 |    4
+ 4 |   4 |    5
+ 5 |   4 |    5
+ 5 |   5 |
+                  </code></pre>
+                </div>
+                <aside class="notes">
+                  <ul>
+                    <li></li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <p>Exercise: Calculate the time span between subsequent orders in
+              days for
+              the customer 19887.</p>
+                <div class="fragment">
+                  <pre><code data-noescape>
+SELECT customerid,
+       orderdate - lag(orderdate) OVER c AS diff
+  FROM orders
+ WHERE customerid = 19887
+WINDOW c AS (PARTITION BY customerid ORDER BY orderdate);
+                  </code></pre>
+                  <pre><code>
+ customerid | diff
+------------+------
+      19887 |
+      19887 |   68
+      19887 |   37
+      19887 |   62
+      19887 |   72
+      19887 |   44
+                  </code></pre>
+                </div>
+                <aside class="notes"></aside>
+            </section>
+
+            <section>
               <p>Exercise: List the customer for every order with their country,
               netamount per order, netamount per customer and the
               netamount per country.</p>
@@ -1677,14 +1736,6 @@ WINDOW cty AS (PARTITION BY country),
             <aside class="notes">
               <h1>Key take away</h1>
             </aside>
-          </section>
-
-          <section>
-
-            <p>Nested Data in BigQuery</p>
-            <p>PostgreSQL - Changes and Deployments with Zero Downtime</p>
-            <p>SQL Performance</p>
-
           </section>
 
         </div>

@@ -317,3 +317,18 @@ GROUP BY country
 -- Local Variables:
 -- sql-product: postgres
 -- End:
+
+
+select customerid, count(*)
+  from orders
+ group by customerid
+ having count(*) >1
+ order by 2 desc;
+
+-- customerid 19887
+
+SELECT customerid, -- orderdate AS od1, lag(orderdate) OVER c AS od2,
+    orderdate - lag(orderdate) OVER c AS diff
+  FROM orders
+ WHERE customerid = 19887
+WINDOW c AS (PARTITION BY customerid ORDER BY orderdate);
