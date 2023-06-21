@@ -672,7 +672,7 @@ SELECT customerid, count(*) OVER()
                 <div class="">
                     <pre><code>
 SELECT
- orderdate, DATE_TRUNC('week', orderdate),
+ orderdate, DATE_TRUNC('week', orderdate) AS week,
  netamount, AVG(netamount)
    OVER (<span class="fragment highlight-current-blue">PARTITION BY</span>
          <span class="fragment highlight-current-blue">DATE_TRUNC('week', orderdate)</span>)
