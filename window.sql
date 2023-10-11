@@ -162,7 +162,7 @@ window w as (
 order by int4(a>=3), 3;
 
 
-select a, a % 2, sum(a) over(partition by (a < 3) order by a) 
+select a, a % 2, sum(a) over(partition by (a < 3) order by a)
 from d order by a;
 
 select customerid,  country, count(*) over(partition by country)
