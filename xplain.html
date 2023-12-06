@@ -20,7 +20,7 @@
           <section>
             <h1>SQL Performance</h1>
             <p>Stefan Litsche</p>
-            <p>17.05.2023</p>
+            <p>08.11.2023</p>
             <aside class="notes">
               <ul>
                 <li>Aurora charges per I/O</li>
@@ -556,7 +556,7 @@ SELECT lastname FROM customers WHERE zip = 36223;
        (cost=0.29..435.79 rows=4 width=11)
        (actual time=5.124..7.063 <span class="emphasize">rows=4</span> loops=1)
    Index Cond: (zip = 36223)
-   Buffers: shared <span class="emphasize">hit=4 read=67</span>
+   Buffers: shared <span class="emphasize">hit=4 read=37</span>
  Planning time: 0.218 ms
  Execution time: 7.122 ms
 (5 rows)
@@ -684,7 +684,7 @@ SELECT lastname FROM customers WHERE zip = 36223;
        (cost=0.29..435.79 rows=4 width=11)
        (actual time=5.124..7.063 <span class="emphasize">rows=4</span> loops=1)
    Index Cond: (zip = 36223)
-   Buffers: shared <span class="emphasize">hit=4 read=67</span>
+   Buffers: shared <span class="emphasize">hit=4 read=37</span>
  Planning time: 0.218 ms
  Execution time: 7.122 ms
 (5 rows)
