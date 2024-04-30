@@ -129,7 +129,7 @@
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>Draw sketch about portions of memory</li>
+                    <li>Synonym: page, buffer, block</li>
                     <li>Define <b>shared buffers</b></li>
                   </ul>
                 </aside>
@@ -524,7 +524,7 @@ EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
                 <aside class="notes">
                   <ul>
                     <li><b>Always</b> includes table access</li>
-                    <li>Compare block count</li>
+                    <li>Compare page count</li>
                     <li>Mention height of index</li>
                   </ul>
                 </aside>
@@ -534,18 +534,19 @@ EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
                 <h3>Index scan</h3>
                   <ul>
                     <li><b>Always</b> includes table access</li>
-                    <li>Random block access</li>
+                    <li>Random page access</li>
                     <li>Reduced I/O</li>
                   </ul>
                 <aside class="notes">
                   <ul>
+                    <li>Tradeoff more costly operation vs result set</li>
                   </ul>
                 </aside>
             </section>
 
             <section>
               <p>📝 Exercise:</p>
-              <p>How many blocks do we process in this query?</p>
+              <p>How many pages do we process in this query?</p>
                 <div class="">
                   <pre class=><code data-noescape>
 SELECT lastname FROM customers WHERE zip = 36223;
@@ -1018,7 +1019,7 @@ EXPLAIN (costs off)
         SELECT lastname
           FROM customers
          GROUP BY lastname
-         HAVING count(1) > 1);
+        HAVING count(1) > 1);
                   </code></pre>
                   <pre class="fragment sli"><code>
  Hash Join
