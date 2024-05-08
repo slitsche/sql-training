@@ -84,8 +84,10 @@ bookshelf.jpg-->
                   </div>
                   <aside class="notes">
                     <ul>
-                      <li>List of Grouping columns</li>
-                      <li>Aggregate function</li>
+                      <li>input column name, or</li>
+                      <li>the name or ordinal number of an output column</li>
+                      <li>or an arbitrary expression formed from input-column values</li>
+                      <li>which can be Aggregate function</li>
                       <li>On Result of <b>WHERE</b></li>
                     </ul>
                   </aside>
@@ -413,13 +415,13 @@ SELECT a, b, count(*)
               </section>
 
                <section>
-                <h3>Union of Group</h3>
+                <h3>Union of Groups</h3>
                 <div class="sli">
                 <pre><code data-noescape >
 SELECT a, b, count(*)
   FROM s
  GROUP BY a,b
-UNION ALL
+ UNION ALL
 SELECT null, null, count(*)
   FROM s;
                   </code></pre>
