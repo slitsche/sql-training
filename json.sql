@@ -149,3 +149,56 @@ SELECT chunk_id, count(chunk_seq)
  GROUP BY chunk_id LIMIT 1;
 
 select '{"1":1}'::jsonb - '1' from t where id = 1;
+
+
+/*
+                    design CONSTRAINTS
+*/
+
+create table c (
+jb  JSONB
+);
+
+alter table c add  PRIMARY KEY (jb);
+-- works
+alter table c drop constraint c_pkey;
+
+select ('{"a":1}'::jsonb)->'a';
+
+alter table c add  PRIMARY KEY (jb->'a');
+-- does not work
+
+alter table c add  PRIMARY KEY ((jb->>'a'));
+-- does not work
+
+-- only column names are allowed for PK, FK and UQ
+
+-- We can define exclusion constraints on array
+CREATE TABLE testtable(
+    id serial PRIMARY KEY,
+    refs integer[],
+    EXCLUDE USING gist ( refs WITH && )
+);
+
+INSERT INTO testtable( refs ) VALUES( ARRAY[100,200] );
+INSERT INTO testtable( refs ) VALUES( ARRAY[200,300] );
+-- fails with constraint violation
+-- this is supported for integer[], but not text[] (would require extension)
+-- Open question: how performant is that on big tables?
+-- Open question: what happens if we follow Josefs advice to partition our data?
+
+-- Can we get the exclusion constraint on Jsonb similar to ARRAY?
+
+alter table c add CHECK (jb->'a' IS NOT NULL);
+-- works
+
+alter table c add EXCLUDE USING gist ( (jb->'a') WITH &&);
+-- ERROR:  data type jsonb has no default operator class for access method "gist"
+/*
+https://stackoverflow.com/questions/77422582/gist-index-or-other-alternative-for-indexing-jsonb-columns-in-postgres
+
+says we should not expect this to work at all
+*/
+
+alter table c add EXCLUDE USING gin ( (jb->'a') WITH &&);
+-- ERROR:  access method "gin" does not support exclusion constraints

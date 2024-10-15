@@ -30,7 +30,7 @@
               <h2>Agenda</h2>
               <ul>
                 <li>Storage of Jsonb</li>
-                <li>Constraints or data modeling</li>
+                <li>Constraints on data modeling</li>
                 <li>Retrieval</li>
               </ul>
             <aside class="notes">
@@ -68,12 +68,15 @@
                 <div class="">
                   <ul>
                     <li>Schema stored with every document</li>
-                    <li>Flexibility cost storage</li>
+                    <li>Flexibility costs storage</li>
                     <li>Storage impacts performance</li>
                   </ul>
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>Flexibility impacts code complexity: handling of variety of schemas</li>
+                    <li>Cost on heap</li>
+                    <li>Cost from WAL</li>
                   </ul>
                 </aside>
             </section>
@@ -82,8 +85,8 @@
                 <h3>Penalty: parsing</h3>
                 <div class="">
                   <ul>
-                    <li>Parse input text</li>
-                    <li>Result is binary representation</li>
+                    <li>Storage of binary representation</li>
+                    <li>Writing Jsonb requires parsing input</li>
                     <li>Slow down of write operations</li>
                 </div>
                 <aside class="notes">
@@ -94,22 +97,23 @@
             </section>
 
             <section>
-                <h3>Binary vs. text</h3>
+                <h3>Example: Binary vs. text</h3>
                <div class="">
                    <pre><code data-noescape>
 SELECT pg_column_size(js) compressed_size,
-       pg_column_size(js::text::jsonb) orig_size,
+       pg_column_size(js::text::jsonb) jsonb_size,
        pg_column_size(js::text) text_size
   FROM t LIMIT 1;
 
- compressed_size | orig_size | text_size
------------------+-----------+-----------
-            6043 |     18904 |     11790
+ compressed_size | jsonb_size | text_size
+-----------------+------------+-----------
+            6043 |      18904 |     11790
 
 </code></pre>
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>This is an example, not a general pattern</li>
                   </ul>
                 </aside>
             </section>
@@ -117,9 +121,9 @@ SELECT pg_column_size(js) compressed_size,
             <section>
                 <h3>Excurse: Oversized attributes</h3>
                 <div class="">
-                  <p>if field is bigger than 2kb</p>
+                  <p>Strategy, if value is bigger than 2kb</p>
                   <ul>
-                    <li>Compress </li>
+                    <li>Compress</li>
                     <li>Out-of-line storage: TOAST</li>
                     <li>Combination of both</li>
                   </ul>
@@ -128,17 +132,19 @@ SELECT pg_column_size(js) compressed_size,
                 <aside class="notes">
                   <ul>
                     <li>Set LZ4 explicitly!!</li>
-                    <li>Use of EXTERNAL will make substring operations on very large text</li>
+                    <li>Use of EXTERNAL will make substring operations on very
+                    large text likely more efficient because no uncompress is
+                      needed.</li>
+                    <li>see https://www.crunchydata.com/blog/postgres-toast-the-greatest-thing-since-sliced-bread</li>
                   </ul>
                 </aside>
             </section>
 
             <section>
-                <h3>Toast table</h3>
+                <h3>Compression and Toasting</h3>
                 <div class="">
               <figure>
-                <img src="img/jsonb/toast.png" />
-                <figcaption>Toast pointer reference (by Attila Molnar)</figcaption>
+                <img src="img/jsonb/postgresql-toast.jpg" />
                 <!-- https://thinkaboutit.tech/database/text-performance-in-postgresql/ -->
               </figure>
                 </div>
@@ -166,7 +172,7 @@ EXPLAIN(ANALYZE, BUFFERS) SELECT jb->'id' FROM toasttest;
             </section>
 
             <section>
-                <h3>Update jsonb</h3>
+                <h3>Storage properties</h3>
                 <div class="">
                   <pre class=""><code data-noescape>
 SELECT relname, relpages, reltuples
@@ -192,11 +198,13 @@ SELECT relname, relpages, reltuples
             </section>
 
             <section>
-                <h3>Penalty: Update jsonb</h3>
+                <h3>Append to jsonb</h3>
                 <div class="">
                   <pre class=""><code data-noescape>
 UPDATE toasttest SET jb = jb || '{"bar": "baz"}';
-EXPLAIN(ANALYZE, BUFFERS) SELECT jb->'id' FROM toasttest;
+
+EXPLAIN(ANALYZE, BUFFERS)
+    SELECT jb->'id' FROM toasttest;
                   </code></pre>
                   <pre class=""><code>
 
@@ -211,7 +219,7 @@ EXPLAIN(ANALYZE, BUFFERS) SELECT jb->'id' FROM toasttest;
             </section>
 
             <section>
-                <h3>Update jsonb</h3>
+                <h3>Impact on Storage</h3>
                 <div class="">
                   <pre class=""><code data-noescape>
 SELECT relname, relpages, reltuples
@@ -225,7 +233,7 @@ SELECT relname, relpages, reltuples
      relname     | relpages | reltuples
 -----------------+----------+-----------
  toasttest       |       64 |     10000
- pg_toast_124193 |     3334 |     20000
+ pg_toast_144212 |     3334 |     20000
 (2 rows)
                   </code></pre>
                 </div>
@@ -237,15 +245,22 @@ SELECT relname, relpages, reltuples
             </section>
 
             <section>
-                <div class="">
+              <div class="">
+                <h3>Penalty: Toast</h3>
                   <ul>
-                    <li>Access to TOASTed JSONB requires reading at least 3
-                      additional buffers</li>
+                    <li>Write amplification</li>
+                    <li>Access using index lookup requires reading at least 3
+                      additional buffers per row</li>
+                    <li>Toast pages do not contributes to the planning cost</li>
                   </ul>
-                  <p>Keep your jsonb column tidy.</p>
                 </div>
                 <aside class="notes">
                   <ul>
+                    <li>write amplification: row header due to chunking,
+                      additional index</li>
+                    <li>Try avoiding big jsonb documents</li>
+                    <li>Try avoiding updates on Jsonb</li>
+                    <li>Use <b>LZ4 compression</b> in toasted values</li>
                   </ul>
                 </aside>
             </section>
@@ -255,981 +270,32 @@ SELECT relname, relpages, reltuples
           <section data-transition="slide">
 
             <section>
-              <h2>Explain explained</h2>
+              <h2>Modeling & Constraints</h2>
                 <aside class="notes">
                   <ul>
-                    <li>translate SQL query into algorithm</li>
-                    <li>for a given query there exists lots of possible plans</li>
-                    <li>explain shows the result of planning</li>
-                    <li>How to interpret the output?</li>
+                    <li>In my view: sets are most important for consistency</li>
                   </ul>
                 </aside>
             </section>
 
             <section>
-                <h3>Explain again</h3>
+                <h3>Domain modeling</h3>
                 <div class="">
-                  <pre><code data-noescape>
-<span class="emphasize">EXPLAIN</span> SELECT * FROM customers;
-
-</code></pre>
-                  <pre><code>
-                           QUERY PLAN
------------------------------------------------------------------
- Seq Scan on customers  (cost=0.00..688.00 rows=20000 width=268)
-(1 row)
-
-                  </code></pre>
+                  <ul>
+                    <li>Schema on read is default</li>
+                    <li>Schema changes without database schema changes</li>
+                    <li>More effort while reading required</li>
                 </div>
                 <aside class="notes">
                   <ul>
-                    <li>estimated Rows <b>emitted</b></li>
-                    <li><b>Network</b> is NOT included</li>
-                    <li><b>width</b> retrieve what is needed</li>
                   </ul>
                 </aside>
             </section>
 
-            <section>
-                <h3>Nodes with extra info</h3>
-                <div class="">
-                  <pre><code data-noescape>
-EXPLAIN
- SELECT lastname FROM customers
-  <span class="emphasize">WHERE country = 'South Africa'</span>;
-
-</code></pre>
-                  <pre><code>
-                         QUERY PLAN
--------------------------------------------------------------
- Seq Scan on customers  (cost=0.00..738.00 rows=935 width=11)
-   Filter: ((country)::text = 'South Africa'::text)
-(2 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Execution nodes can have extra info</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Parent nodes have childs</h3>
-                <div class="">
-                  <pre><code data-noescape>
-EXPLAIN
- SELECT count(*) FROM customers
-  WHERE country = 'South Africa'
-  GROUP BY country;
-</code></pre>
-                  <pre><code>
-                            QUERY PLAN
--------------------------------------------------------------------
- GroupAggregate  (cost=0.00..742.78 rows=11 width=13)
-   Group Key: country
-   ->  Seq Scan on customers  (cost=0.00..738.00 rows=935 width=5)
-         Filter: ((country)::text = 'South Africa'::text)
-(4 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Indicated by arrow</li>
-                    <li>Cost of CHILD nodes included</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>More Infos from explain</h3>
-                <div class="">
-                  <pre><code data-noescape>
-EXPLAIN <span class="emphasize">(ANALYZE)</span>
- SELECT country FROM customers
-  WHERE country = 'South Africa' ;
-</code></pre>
-                  <pre><code>
- Seq Scan on customers
-     (cost=0.00..738.00 <span class="emphasize">rows=935</span> width=5)
-     (actual time=3.180..4.754 rows=935 loops=1)
-   Filter: ((country)::text = 'South Africa'::text)
-   <span class="emphasize">Rows Removed by Filter: 19065</span>
- Planning time: 0.156 ms
- Execution time: 4.826 ms
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li><b>Formatting</b> changed</li>
-                    <li>Transactions</li>
-                    <li><b>Beware</b> of explain analyze and update</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Index usage</h3>
-                <div class="">
-                  <pre><code data-noescape>
-EXPLAIN
- SELECT lastname FROM customers WHERE username = 'user1';
-
-</code></pre>
-                  <pre><code>
- <span class="emphasize">Index Scan</span> using customers_username_idx on customers
-       (cost=0.29..8.30 rows=1 width=11)
-   Index Cond: ((username)::text = 'user1'::text)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Let&apos;s practise</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>📝 Exercise:</p>
-                <p>Compare the execution plans</p>
-                <div class="">
-                  <pre class="fragment sli"><code data-noescape>
-SELECT *
-  FROM orders
- WHERE orderdate > '2004-01-31';
-                  </code></pre>
-                  <pre class="fragment sli"><code>
-SELECT *
-  FROM orders
- WHERE orderdate > '2004-11-30';
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Both differ in value only</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Bound values may have effect</p>
-                <div class="">
-                  <pre><code data-noescape>
- Seq Scan on orders  (cost=0.00..250.00 rows=11019 width=30)
-   Filter: (orderdate > '2004-01-31'::date)
-(2 rows)
-                  </code></pre>
-                  <pre class=""><code>
- Index Scan using orders_orderdate_idx on orders  (cost=0.29..47.08 rows=1001 width=30)
-   Index Cond: (orderdate > '2004-11-30'::date)
-(2 rows)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Depending on value queries can have different execution plans</li>
-                    <li>Result set order of magnitude different</li>
-                    <li>Check Postgresql logs for parameter of slow queries</li>
-                    <li>NEXT: Why that?</li>
-                  </ul>
-                </aside>
-            </section>
 
           </section>
 
-          <section data-transition="slide">
-            <section>
-                <h2>Index Anatomy</h2>
-                <aside class="notes">
-                  <ul>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Pages and Blocks</h3>
-                  <ul>
-                    <li>Block basic entity for data operation</li>
-                    <li>Block holds metadata</li>
-                    <li>Read into shared memory</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Default 8 kB</li>
-                    <li>For tables and indexes</li>
-                    <li>Every I/O operation</li>
-                    <li>Mention rowid as physical address</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <figure>
-                <img src="img/page-structure.png" />
-                <figcaption>Page Structure (by Bruce Momjian)</figcaption>
-              </figure>
-            </section>
-
-            <section>
-                <h3>B-Tree Index</h3>
-                  <ul>
-                    <li>Tree is balanced</li>
-                    <li>Items are ordered</li>
-                    <li>Leaf nodes double linked list</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Search Tree</li>
-                    <li>Start drawing a tree with ids</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <figure>
-                <img src="https://use-the-index-luke.com/static/fig01_02_tree_structure.en.BdEzalqw.png"
-width="800" />
-              <figcaption>Index Structure (by Markus Winand)</figcaption>
-              </figure>
-              <aside class="notes">
-                <ul>
-                  <li>Ordered items</li>
-                  <li>Item 46 is in multiple blocks present</li>
-                  <li>Leaf nodes point to table row</li>
-                </ul>
-              </aside>
-            </section>
-
-            <section>
-                <h3>Index scan</h3>
-                <div class="">
-                  <pre><code data-noescape>
-CREATE UNIQUE INDEX on customers (<span class="emphasize">username</span>);
-
-EXPLAIN (ANALYZE, <span class="emphasize">BUFFERS</span>)
- SELECT lastname FROM customers WHERE <span class="emphasize">username =</span> 'user1';
-
-</code></pre>
-                  <pre><code>
- Index Scan using customers_username_idx on customers
-       (cost=0.29..8.30 rows=1 width=11)
-       (actual time=3.173..3.185 rows=1 loops=1)
-   Index Cond: ((username)::text = 'user1'::text)
-   Buffers: shared <span class="emphasize">hit=1 read=2</span>
- Planning time: 0.170 ms
- Execution time: 3.263 ms
-(5 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li><b>Always</b> includes table access</li>
-                    <li>Compare page count</li>
-                    <li>Mention height of index</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Index scan</h3>
-                  <ul>
-                    <li><b>Always</b> includes table access</li>
-                    <li>Random page access</li>
-                    <li>Reduced I/O</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Tradeoff more costly operation vs result set</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <p>📝 Exercise:</p>
-              <p>How many pages do we process in this query?</p>
-                <div class="">
-                  <pre class=><code data-noescape>
-SELECT lastname FROM customers WHERE zip = 36223;
-
-</code></pre>
-                  <pre class="fragment sli"><code>
- Index Scan using zip_slow on customers
-       (cost=0.29..435.79 rows=4 width=11)
-       (actual time=5.124..7.063 <span class="emphasize">rows=4</span> loops=1)
-   Index Cond: (zip = 36223)
-   Buffers: shared <span class="emphasize">hit=4 read=37</span>
- Planning time: 0.218 ms
- Execution time: 7.122 ms
-(5 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>What in explain output indicates that this query could be made more efficient?</li>
-                    <li>Discuss worst case scenario for 4 rows</li>
-                    <li>Next: Why do we have so many I/O?</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Summary</h3>
-                  <ul>
-                    <li>Index scales with growth of rowcount</li>
-                    <li>Cost of maintenance</li>
-                    <li>Use explain to spot wasted I/O</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Shorter plans tend to be faster</li>
-                    <li>Writes are <b>slower</b> with more indexes</li>
-                    <li>You can have too many indexes</li>
-                    <li><b>Story</b> Amsterdam</li>
-                  </ul>
-                </aside>
-            </section>
-
-          </section>
-
-          <section data-transition="slide">
-            <section>
-              <h2>Leverage indexes</h2>
-            </section>
-
-            <section>
-              <h3>Choose an index</h3>
-                  <ul>
-                    <li>column is referenced</li>
-                    <li>used operator matches the supported set</li>
-                    <li>retrieve less 10..15% of the table</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Remeber the exercise: parameter matters</li>
-                    <li>Query should run frequently</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Index types</h3>
-                  <ul>
-                    <li>B-Tree</li>
-                    <li>Gin</li>
-                    <li>Gist</li>
-                    <li>Hash</li>
-                    <li>Brin</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>You can have too many indexes</li>
-                    <li>Check out Postgres extensions</li>
-                    <li>Bloomfilter or hypothetical indexes available</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Operators for Btree</h3>
-                  <ul>
-                    <li>=</li>
-                    <li>>=</li>
-                    <li><=</li>
-                    <li>></li>
-                    <li><</li>
-                    <li>BETWEEN</li>
-                    <li>IN</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Hash Index for = and IN operator</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Is the index used by the query?</p>
-                <div class="">
-                  <pre class=><code data-noescape>
-CREATE INDEX orders_orderdate_idx ON orders (orderdate);
-
-SELECT count(*) FROM orders
- WHERE extract('month' from orderdate) = 1;
-
-                  </code></pre>
-                  <pre class="fragment sli"><code>
-SELECT count(*) FROM orders
- WHERE orderdate >= '2004-01-01' AND orderdate < '2004-02-01';
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Greater and smaller than operators</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Slow Index?</h3>
-                <div class="">
-                  <pre><code data-noescape>
-CREATE INDEX zip_slow ON customers (country, zip);
-
-SELECT lastname FROM customers WHERE zip = 36223;
-
-</code></pre>
-                  <pre><code>
- Index Scan using zip_slow on customers
-       (cost=0.29..435.79 rows=4 width=11)
-       (actual time=5.124..7.063 <span class="emphasize">rows=4</span> loops=1)
-   Index Cond: (zip = 36223)
-   Buffers: shared <span class="emphasize">hit=4 read=37</span>
- Planning time: 0.218 ms
- Execution time: 7.122 ms
-(5 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Access predicate and Filter on Index</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Better Version</h3>
-                <div class="">
-                  <pre><code data-noescape>
-CREATE INDEX zip_fast ON customers (<span class="emphasize">zip, country</span>);
-
-SELECT lastname FROM customers WHERE zip = 36223;
-
-</code></pre>
-                  <pre><code>
- Index Scan using zip_fast on customers
-       (cost=0.29..17.72 rows=4 width=11)
-       (actual time=0.068..0.078 rows=4 loops=1)
-   Index Cond: (zip = 36223)
-   Buffers: shared <span class="emphasize">hit=4 read=2</span>
- Planning time: 0.434 ms
- Execution time: 0.115 ms
-(5 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Multicolumn for first or first and second!</li>
-                    <li>Bloat might be another cause: ACID team</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Ordering data</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-EXPLAIN
- SELECT lastname FROM customers ORDER BY country DESC;
-                  </code></pre>
-                  <pre><code>
- Sort  (cost=2116.77..2166.77 rows=20000 width=16)
-       (actual time=34.178..36.247 rows=20000 loops=1)
-   Sort Key: country DESC
-   Sort Method: external merge  Disk: 520kB
-   Buffers: shared hit=488, temp read=65 <span class="emphasize">written=65</span>
-   ->  Seq Scan on customers
-           (cost=0.00..688.00 rows=20000 width=16)
-           (actual time=0.024..5.214 rows=20000 loops=1)
-         Buffers: shared hit=488
- Planning time: 0.181 ms
- Execution time: 37.664 ms
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Remember memory</li>
-                    <li>SORT is a new Node type in explain</li>
-                    <li>consider work_mem</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <figure>
-                <img src="img/shared-buffers.png"/>
-                <figcaption>RAM Usage (by Bruce Momjian)</figcaption>
-              </figure>
-              <aside class="notes">
-                <p>Remember double linked list</p>
-              </aside>
-            </section>
-
-            <section>
-              <h3>Ordering data using index</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-CREATE INDEX customer_country_idx ON customers (country);
-
-EXPLAIN
- SELECT lastname FROM customers ORDER BY country DESC;
-
-                  </code></pre>
-                  <pre><code>
- <span class="emphasize">Index Scan Backward</span> using customer_country_idx on customers
-       (cost=0.29..1938.21 rows=20000 width=16)
-       (actual time=0.050..21.823 rows=20000 loops=1)
-   Buffers: shared hit=2720 read=58
- Planning time: 0.468 ms
- Execution time: 26.041 ms
-(4 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>double linked list</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>📝 Exercise:</p>
-                <p>Pagination: Compare two approaches</p>
-                <div class="">
-                  <pre class="fragment sli"><code data-noescape>
-SELECT *
-  FROM customers
- ORDER BY customerid
- LIMIT 5
-OFFSET 100;
-
-                  </code></pre>
-                  <pre class="fragment sli"><code>
-SELECT *
-  FROM customers
- WHERE customerid > 100
- ORDER BY customerid
- LIMIT 5;
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Service offer pagination through customers</li>
-                    <li>Order by ID</li>
-                    <li>Page size 5</li>
-                    <li>Why choose one over the other?</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Pagination: Offset vs. Seek</p>
-                <div class="">
-                  <pre><code data-noescape>
--- OFFSET
- Limit  (cost=5.38..5.64 rows=5 width=268)
-        (actual time=0.040..0.041 rows=5 loops=1)
-   ->  Index Scan using customers_pkey on customers
-            (cost=0.29..1019.29 rows=20000 width=268)
-            (actual time=0.013..0.034 <span class="emphasize">rows=105</span> loops=1)
-                  </code></pre>
-                  <pre class=""><code>
--- SEEK
- Limit  (cost=0.29..0.56 rows=5 width=268)
-        (actual time=0.055..0.063 rows=5 loops=1)
-   ->  Index Scan using customers_pkey on customers
-           (cost=0.29..1065.55 rows=19901 width=268)
-           (actual time=0.053..0.057 rows=5 loops=1)
-         <span class="emphasize">Index Cond: (customerid > 100)</span>
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Less rows, less I/O</li>
-                    <li>Scalability: optimize not for mean performance, but for p99</li>
-                    <li>Seek works also without <code>limit</code>: thread the
-                    last id through subsequent calls</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Ordering data with multi-column index</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-CREATE INDEX zip_slow ON customers (country, zip);
-
-EXPLAIN
- SELECT firstname, lastname FROM CUSTOMERS
-  ORDER BY country, zip;
-                  </code></pre>
-                  <pre><code>
-Index Scan using <span class="emphasize">zip_slow</span> on customers
-  (cost=0.29..2214.87 rows=20000 width=27)
-(1 row)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>multi column index</li>
-                    <li>same ordering</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Ordering data with multi-column index(2)</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-CREATE INDEX zip_slow ON customers (country, zip);
-
-EXPLAIN
- SELECT firstname, lastname FROM CUSTOMERS
-ORDER BY <span class="emphasize">country, zip DESC</span>;
-                  </code></pre>
-                  <pre><code>
- Sort  (cost=3075.77..3125.77 rows=20000 width=27)
-   Sort Key: country ASC, zip DESC
-   ->  Seq Scan on customers  (cost=0.00..688.00 rows=20000 width=27)
-(3 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>multi column index</li>
-                    <li>mixed ordering</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Mixed Ordering Multi Column Index</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-CREATE INDEX multi_mixed ON customers (country ASC, zip DESC);
-
-EXPLAIN
- SELECT firstname, lastname FROM CUSTOMERS
-  ORDER BY country ASC, zip DESC;
-                  </code></pre>
-                  <pre><code>
- Index Scan using multi_mixed on customers
-    (cost=0.29..2214.87 rows=20000 width=27)
-(1 row)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>multi column index</li>
-                    <li>mixed ordering</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-              <h3>Partial Index</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-CREATE INDEX ON customers (customerid) WHERE status = 'NEW';
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Specific use case</li>
-                    <li>beware of sample size for ANALYZE</li>
-                    <li>Less blocks per index</li>
-                  </ul>
-                </aside>
-            </section>
-
-          </section>
-
-
-          <section data-transition="slide">
-
-            <section>
-                <h3>Multiple Tables</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-SET enable_hashjoin TO false;
-
-EXPLAIN
-SELECT o.*
-  FROM orders AS o
-  NATURAL JOIN customers AS c
-  WHERE state = 'AZ';
-                  </code></pre>
-                  <pre class=""><code>
- Nested Loop  (cost=0.29..1309.31 rows=106 width=30)
-   ->  Seq Scan on customers c  (cost=0.00..738.00 rows=177 width=4)
-         Filter: ((state)::text = 'AZ'::text)
-   ->  Index Scan using orders_customerid_orderdate_idx on orders o  (cost=0.29..3.22 rows=1 width=30)
-         Index Cond: (customerid = c.customerid)
-(5 rows)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <h3>Hash Join</h3>
-                <div class="">
-                  <pre class=><code data-noescape>
-SET enable_hashjoin TO true;
-
-EXPLAIN
-SELECT o.*
-  FROM orders AS o
-  NATURAL JOIN customers AS c
-  WHERE state = 'AZ';
-                  </code></pre>
-                  <pre class=""><code>
- Hash Join  (cost=740.21..991.72 rows=106 width=30)
-   Hash Cond: (o.customerid = c.customerid)
-   ->  Seq Scan on orders o  (cost=0.00..220.00 rows=12000 width=30)
-   ->  Hash  (cost=738.00..738.00 rows=177 width=4)
-         ->  Seq Scan on customers c  (cost=0.00..738.00 rows=177 width=4)
-               Filter: ((state)::text = 'AZ'::text)
-(6 rows)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>📝 Exercise: Improve Finding Doublets</p>
-                <div class="">
-                  <pre class=><code data-noescape>
-EXPLAIN (costs off)
- SELECT * FROM customers
-  WHERE lastname IN (
-        SELECT lastname
-          FROM customers
-         GROUP BY lastname
-        HAVING count(1) > 1);
-                  </code></pre>
-                  <pre class="fragment sli"><code>
- Hash Join
-   Hash Cond: ((customers.lastname)::text = (customers_1.lastname)::text)
-   ->  <span class="emphasize">Seq Scan on customers</span>
-   ->  Hash
-         ->  GroupAggregate
-               Group Key: customers_1.lastname
-               Filter: (count(1) > 1)
-               ->  Sort
-                     Sort Key: customers_1.lastname
-                     ->  <span class="emphasize">Seq Scan on customers customers_1</span>
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Discuss Hash Join</li>
-                    <li>What could be done to improve that query?</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Single Table Scan</p>
-                <div class="">
-                  <pre class=><code data-noescape>
-EXPLAIN (costs off)
-WITH cand AS (
-    SELECT lastname,
-        count(1) OVER
-            (PARTITION BY lastname RANGE CURRENT ROW) as c
-    FROM customers)
-SELECT lastname FROM cand
- WHERE c > 1;
-                  </code></pre>
-                  <pre><code>
- CTE Scan on cand
-   Filter: (c > 1)
-   CTE cand
-     ->  WindowAgg
-           ->  Sort
-                 Sort Key: customers.lastname
-                 ->  Seq Scan on customers
-(7 rows)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>No Silver Bullet</li>
-                    <li>Mind the memory usage</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>How to Improve Analytical Query?</p>
-                <div class="">
-                  <pre class=><code data-noescape>
-SELECT customerid, country, count(*)
-  FROM orders AS o
-  JOIN customers AS c USING (customerid)
- GROUP BY o.customerid, c.country
- ORDER BY 3,1 DESC
- LIMIT 5;
-                  </code></pre>
-                  <pre class="fragment sli"><code>
- Limit  (cost=1598.83..1598.84 rows=5 width=26)
-   ->  Sort  (cost=1598.83..1628.83 rows=12000 width=26)
-         Sort Key: (count(*)), o.customerid DESC
-         ->  HashAggregate  (cost=1279.51..1399.51 rows=12000 width=26)
-               Group Key: o.customerid, c.country
-               ->  Hash Join  (cost=938.00..1189.51 rows=12000 width=9)
-                     Hash Cond: (o.customerid = c.customerid)
-                     ->  Seq Scan on orders o  (cost=0.00..220.00 rows=12000 width=4)
-                     ->  Hash  (cost=688.00..688.00 rows=20000 width=9)
-                           ->  Seq Scan on customers c  (cost=0.00..688.00 rows=20000 width=9)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Discuss Hash Join</li>
-                    <li>What could be done to improve that query?</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <div class="">
-                  <pre class=><code data-noescape>
-WITH ordered AS (
-    SELECT customerid, count(*)
-      FROM orders AS o
-     GROUP BY o.customerid
-     ORDER BY 2,1 desc
-     LIMIT 5)
-SELECT o.customerid, country, count
-  FROM ordered AS o
-  JOIN customers AS c USING (customerid);
-                  </code></pre>
-                  <pre class="fragment sli"><code>
- Nested Loop  (cost=519.68..561.02 rows=5 width=17)
-   CTE ordered
-     ->  Limit  (cost=519.38..519.39 rows=5 width=12)
-           ->  Sort  (cost=519.38..541.87 rows=8996 width=12)
-                 Sort Key: (count(*)), o_1.customerid DESC
-                 ->  HashAggregate  (cost=280.00..369.96 rows=8996 width=12)
-                       Group Key: o_1.customerid
-                       ->  Seq Scan on orders o_1  (cost=0.00..220.00 rows=12000 width=4)
-   ->  CTE Scan on ordered o  (cost=0.00..0.10 rows=5 width=12)
-   ->  Index Scan using customers_pkey on customers c  (cost=0.29..8.30 rows=1 width=9)
-         Index Cond: (customerid = o.customerid)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Order is not defined! within a table</li>
-                    <li>What could be done to improve that query?</li>
-                  </ul>
-                </aside>
-            </section>
-
-
-            <section>
-                <p>Does this query use the index?</p>
-                <div class="">
-                  <pre><code data-noescape>
-CREATE INDEX ON orders (orderdate);
-
-EXPLAIN
- SELECT * FROM orders
-  WHERE
-  orderdate = date_trunc('day',
-                          clock_timestamp()-'1day'::interval);
-                  </code></pre>
-                  <pre class="fragment sli"><code>
- Seq Scan on orders  (cost=0.00..340.00 rows=33 width=30)
-   Filter: (orderdate = date_trunc('day'::text, (clock_timestamp() - '1 day'::interval)))
-(2 rows)
-
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Stable vs. volatile functions</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <p>Use the index with literal</p>
-                <div class="">
-                  <pre class=><code data-noescape>
-EXPLAIN
- SELECT * FROM orders
-  WHERE orderdate = 'yesterday'::date;
-                  </code></pre>
-                  <pre><code>
- Index Scan using orders_orderdate_idx on orders  (cost=0.29..10.31 rows=32 width=30)
-   Index Cond: (orderdate = '2019-06-17'::date)
-(2 rows)
-                  </code></pre>
-                </div>
-                <aside class="notes">
-                  <ul>
-                    <li>Mind the memory usage</li>
-                  </ul>
-                </aside>
-            </section>
-
-            <section>
-                <img data-src="img/depesz.png">
-                <p><a href="https://explain.depesz.com/">https://explain.depesz.com/</a></p>
-            </section>
-
-            <section>
-                <img data-src="img/dalibo.png">
-                <p><a href="https://explain.dalibo.com/">https://explain.dalibo.com/</a></p>
-            </section>
-
-            <section>
-              <h2>Summary</h2>
-                  <ul>
-                    <li>Expected index is used?</li>
-                    <li>Too many rows removed?</li>
-                    <li>Too many blocks?</li>
-                    <li>Redundant predicates?</li>
-                    <li>Bad estimate?</li>
-                  </ul>
-                <aside class="notes">
-                  <ul>
-                    <li>Difference estimated and real rows?</li>
-                    <li>Why are queries slow</li>
-                    <li>Logistics project: collect on performance</li>
-                    <li>Reduce I/O</li>
-                    <ul>
-                        <li>Redundant predicates?</li>
-                        <li>wrong execution model (correlated subquery)</li>
-                        <li>skewed data</li>
-                    </ul>
-                    <li>Contention? There are more issues possible</li>
-                  </ul>
-                </aside>
-            </section>
-          </section>
-          </div>
+       </div>
     </div>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.load.js"></script> -->
     <script src="js/head.load.1.0.3.js"></script>
