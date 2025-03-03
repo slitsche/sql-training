@@ -852,8 +852,19 @@ SELECT *
                   <ul>
                     <li>Less rows, less I/O</li>
                     <li>Scalability: optimize not for mean performance, but for p99</li>
-                    <li>Seek works also without <code>limit</code>: thread the
-                    last id through subsequent calls</li>
+                    <li>Predictable performance as goal</li>
+                  </ul>
+                </aside>
+            </section>
+
+            <section>
+              <h3>Problems with Offset</h3>
+                  <ul>
+                    <li>Inefficient due to missing index condition</li>
+                    <li>Prone to duplicates due to concurrent modification</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
                   </ul>
                 </aside>
             </section>
