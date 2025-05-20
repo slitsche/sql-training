@@ -332,3 +332,27 @@ SELECT customerid, -- orderdate AS od1, lag(orderdate) OVER c AS od2,
   FROM orders
  WHERE customerid = 19887
 WINDOW c AS (PARTITION BY customerid ORDER BY orderdate);
+
+-- the version with order by outside window
+-- works only if the physical order is as expected
+SELECT a,
+       LAG(a) over w,
+       LEAD(a) over w
+  FROM d
+WINDOW w AS ()
+ ORDER BY a;
+
+-- if we destroy it
+
+select a from d;
+
+update d set a =3 where a = 3;
+
+-- it becomes clear that the order by has to go into
+-- the window spec
+
+SELECT a,
+       LAG(a) over w,
+       LEAD(a) over w
+  FROM d
+WINDOW w AS (ORDER BY a);

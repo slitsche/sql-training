@@ -1685,8 +1685,7 @@ SELECT a,
        LAG(a) over w,
        LEAD(a) over w
   FROM d
-WINDOW w AS ()
- ORDER BY a
+WINDOW w AS (ORDER BY a)
                   </code></pre>
                   <pre><code>
  a | lag | lead
