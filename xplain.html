@@ -1195,12 +1195,76 @@ EXPLAIN
                   </code></pre>
                 </div>
                 <aside class="notes">
+                </aside>
+            </section>
+          </section>
+
+          <!--
+               prepared statements
+          -->
+          <section>
+            <section>
+               <h3>Prepared Statement</h3>
                   <ul>
-                    <li>Mind the memory usage</li>
+                    <li>Server side object</li>
+                    <li>Avoid repetetive parsing</li>
+                    <li>Often less network usage</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>SQL Injection</li>
                   </ul>
                 </aside>
             </section>
 
+            <section>
+               <h3>Prepared Statement</h3>
+                  <ul>
+                    <li>Either generic or custom plan</li>
+                    <li>Generic avoids repetetive analyzing</li>
+                    <li>Heuristic used to decide which to use</li>
+                  </ul>
+                <aside class="notes">
+                  <ul>
+                    <li>Generic plan might differ from custom plan</li>
+                  </ul>
+                </aside>
+            </section>
+            <section>
+               <h3>Generic plan</h3>
+                <div class="">
+                  <pre class=><code data-noescape>
+EXPLAIN (<span class="emphasize">GENERIC_PLAN</span>)
+SELECT *
+  FROM orders
+ WHERE orderid = $1;
+                  </code></pre>
+                  <pre><code>
+                                QUERY PLAN
+---------------------------------------------------------------------------
+ Index Scan using orders_pkey on orders  (cost=0.29..8.30 rows=1 width=30)
+   Index Cond: (orderid = $1)
+(2 rows)
+                  </code></pre>
+                </div>
+
+                <aside class="notes">
+                  <ul>
+                    <li>available since version 16</li>
+                    <li>PostgreSQL log</li>
+                    <li>pg_stat_statements</li>
+                    <li>generic plan without parameters</li>
+                    <li>does not tell, which is actually used</li>
+                  </ul>
+                </aside>
+            </section>
+
+          </section>
+
+          <!--
+               Coda: Visualization tools
+          -->
+          <section>
             <section>
                 <img data-src="img/depesz.png">
                 <p><a href="https://explain.depesz.com/">https://explain.depesz.com/</a></p>
