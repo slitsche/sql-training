@@ -730,6 +730,24 @@ SELECT lastname FROM customers WHERE zip = 36223;
             </section>
 
             <section>
+              <h3>Since PostgreSQL 18</h3>
+              <ul>
+                <li>Index scan considers physical index characteristics</li>
+                <li>Avoid multiple scans if subsequent scans would access same
+                  page</li>
+                <li>Prefix column are not required anymore</li>
+                <li>Best for low cardinality prefix column</li>
+              </ul>
+              <aside class="notes">
+                <ul>
+                  <li>also operator other than "=" for prefix column</li>
+                  <li>rule for multi-column index changes</li>
+                  <li>order by cardinality</li>
+                </ul>
+              </aside>
+            </section>
+
+            <section>
               <h3>Ordering data</h3>
                 <div class="">
                   <pre class=><code data-noescape>
