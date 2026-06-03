@@ -19,9 +19,9 @@
           <section>
             <h1>SQL Advanced</h1>
             <p>Stefan Litsche</p>
-            <p>11.02.2025</p>
+            <p>03.06.2026</p>
             <aside class="notes">
-              <p>By the end the training</p>
+              <p>By the end of the training</p>
               <ul>
                 <li>write analytical queries</li>
                 <li>using aggregate fn with groups and window fn</li>
@@ -1757,6 +1757,33 @@ WINDOW cty AS (PARTITION BY country),
          12 │ US      │    350.87 │        350.87 │ 1172676.73
          13 │ US      │     83.31 │        310.76 │ 1172676.73
          13 │ US      │    227.45 │        310.76 │ 1172676.73
+                  </code></pre>
+                </div>
+                <aside class="notes"></aside>
+            </section>
+
+            <section>
+              <h3>Exclude current row from frame</h3>
+                <div class="">
+                  <pre><code data-noescape>
+SELECT
+  orderid, orderdate, netamount,
+  sum(netamount)
+     OVER (
+      ORDER BY orderdate
+      ROWS between unbounded preceding and <span class="emphasize">1 preceding</span>)
+   FROM orders;
+                  </code></pre>
+                  <pre><code>
+ orderid | orderdate  | netamount |    sum
+---------+------------+-----------+------------
+       2 | 2004-01-01 |     54.90 |
+      78 | 2004-01-01 |    145.50 |      54.90
+     131 | 2004-01-01 |     81.68 |     200.40
+     270 | 2004-01-01 |     31.86 |     282.08
+     279 | 2004-01-01 |      9.04 |     313.94
+     295 | 2004-01-01 |    361.87 |     322.98
+     304 | 2004-01-01 |     58.92 |     684.85
                   </code></pre>
                 </div>
                 <aside class="notes"></aside>

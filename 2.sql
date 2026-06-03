@@ -97,3 +97,43 @@ select customerid, count(*)
 select o.customerid, country, count
   from ordered AS o
   join customers AS c USING (customerid);
+
+--------------- Window with previous
+
+SELECT
+  date_trunc('week', orderdate) AS week,
+  netamount,
+  sum(netamount) OVER (order by orderdate
+  RANGE between unbounded preceding and '1 day' preceding)
+   FROM (VALUES
+   ('2025-01-01'::date, 23.01),
+   ('2025-01-01'::date, 13.01),
+   ('2025-01-02'::date, 15.01),
+   ('2025-01-02'::date, 42.03))
+   orders(orderdate, netamount)
+
+SELECT
+  date_trunc('week', orderdate) AS week,
+  netamount,
+  sum(netamount) OVER (order by orderdate
+  groups between unbounded preceding and 1 preceding)
+   FROM (VALUES
+   ('2025-01-01'::date, 23.01),
+   ('2025-01-01'::date, 13.01),
+   ('2025-01-02'::date, 15.01),
+   ('2025-01-02'::date, 42.03))
+   orders(orderdate, netamount)
+
+SELECT
+  orderdate, date_trunc('week', orderdate) AS week,
+  netamount,
+  sum(netamount) OVER (order by orderdate
+  RANGE between unbounded preceding and '1 day' preceding)
+   FROM orders;
+
+SELECT
+  orderdate, netamount,
+  sum(netamount) OVER (order by orderdate
+  ROWS between unbounded preceding and 1 preceding)
+   FROM orders;
+

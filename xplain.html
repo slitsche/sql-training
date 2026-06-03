@@ -733,9 +733,9 @@ SELECT lastname FROM customers WHERE zip = 36223;
               <h3>Since PostgreSQL 18</h3>
               <ul>
                 <li>Index scan considers physical index characteristics</li>
-                <li>Avoid multiple scans if subsequent scans would access same
+                <li>It avoids multiple scans if subsequent scans would access same
                   page</li>
-                <li>Prefix column are not required anymore</li>
+                <li>Prefix columns are not required anymore</li>
                 <li>Best for low cardinality prefix column</li>
               </ul>
               <aside class="notes">
@@ -879,7 +879,7 @@ SELECT *
               <h3>Problems with Offset</h3>
                   <ul>
                     <li>Inefficient due to missing index condition</li>
-                    <li>Prone to duplicates due to concurrent modification</li>
+                    <li>Error prone due to concurrent modification</li>
                   </ul>
                 <aside class="notes">
                   <ul>
