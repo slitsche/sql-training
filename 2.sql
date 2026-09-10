@@ -135,5 +135,6 @@ SELECT
   orderdate, netamount,
   sum(netamount) OVER (order by orderdate
   ROWS between unbounded preceding and 1 preceding)
-   FROM orders;
+   FROM orders
+  LIMIT 10;
 

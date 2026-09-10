@@ -508,7 +508,46 @@ SELECT a,b,count(*)
               <section>
                 <p>Exercise: List the count of customers by country and state
                   and additionally the count by country; ordered by country</p>
-                <div class="fragment sli">
+                  <aside class="notes">
+                </aside>
+              </section>
+
+              <section>
+                <p>Duplicates?</p>
+                <div class="sli">
+                <pre><code data-noescape >
+SELECT country, state,
+  count(*) AS aggregate
+  FROM customers
+ GROUP BY GROUPING SETS (
+    (country, state),
+    country
+ )
+ ORDER BY country;
+                  </code></pre>
+                  <pre><code>
+   country    | state | aggregate
+--------------+-------+-----------
+ Australia    |       |      1034
+ Australia    |       |      1034
+ Canada       |       |      1004
+ Canada       |       |      1004
+ Chile        |       |      1047
+ Chile        |       |      1047
+ China        |       |      1002
+ China        |       |      1002
+ ...
+                  </code></pre>
+                  </div>
+                <aside class="notes">
+                  <p>We get duplicates for Canada, since all states are
+                    null.</p>
+                  <p>This can be avoided by using <em>distinct</em>.</p>
+                </aside>
+              </section>
+              <section>
+                <p>Change text depending on grouping</p>
+                <div class="sli">
                 <pre><code data-noescape >
 SELECT country,
   CASE
@@ -524,11 +563,21 @@ SELECT country,
  )
  ORDER BY country;
                   </code></pre>
+                <pre><code data-noescape >
+   country    | state | aggregate
+--------------+-------+-----------
+ Australia    | n/a   |      1034
+ Australia    |       |      1034
+ Canada       | n/a   |      1004
+ Canada       |       |      1004
+ Chile        | n/a   |      1047
+ Chile        |       |      1047
+ China        | n/a   |      1002
+ China        |       |      1002
+...
+                  </code></pre>
                   </div>
                 <aside class="notes">
-                  <p>We get duplicates for Canada, since all states are
-                    null.</p>
-                  <p>This can be avoided by using <em>distinct</em>.</p>
                   <p>If we want to show null values, use GROUPING to change the label.</p>
                 </aside>
               </section>
